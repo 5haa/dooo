@@ -1,0 +1,57 @@
+{
+  "name": "dooo",
+  "productName": "Dooo",
+  "version": "1.0.0",
+  "description": "A glassy little to-do widget for your Windows desktop",
+  "author": "5haa",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --win --dir",
+    "dist": "electron-builder --win nsis",
+    "test:e2e": "node tests/e2e.js",
+    "test:unit": "node tests/unit.js"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "playwright-core": "^1.64.0"
+  },
+  "build": {
+    "appId": "com.5haa.dooo",
+    "productName": "Dooo",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Dooo",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh",
+      "artifactName": "Dooo-Setup-${version}.${ext}"
+    }
+  }
+}

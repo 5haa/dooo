@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dooo</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script defer src="js/shim.js"></script>
+  <script defer src="js/icons.js"></script>
+  <script defer src="js/util.js"></script>
+  <script defer src="js/store.js"></script>
+  <script defer src="js/view.js"></script>
+  <script defer src="js/sheet.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/dnd.js"></script>
+  <script defer src="js/window.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="panel" id="panel">
+      <div class="panel-inner" id="panel-inner">
+
+        <header class="header">
+          <div class="avatar" id="avatar" aria-hidden="true"></div>
+          <div class="greet">
+            <div class="greet-hi" data-testid="greeting">Hi <span class="wave">👋</span> <span class="greet-name" id="greet-name"></span>!</div>
+            <div class="greet-sub">Welcome back</div>
+          </div>
+          <div class="header-actions">
+            <div class="pill count-pill" id="count-pill" role="status" aria-live="polite">
+              <i data-icon="zap"></i><span class="count-num" id="count-num"></span><span class="count-word" id="count-word"></span>
+            </div>
+            <button type="button" class="icon-btn pin-btn" id="pin-btn" aria-pressed="false" title="Keep on top">
+              <i data-icon="pin"></i><span class="dot" aria-hidden="true"></span>
+            </button>
+          </div>
+        </header>
+
+        <main class="views" id="views">
+          <section class="view view-list" id="view-list" aria-label="Tasks">
+            <div class="view-head" id="done-head">
+              <div class="view-head-title">Completed <span class="view-head-count" id="done-count"></span></div>
+              <button type="button" class="btn btn-sm" id="clear-all">Clear all</button>
+            </div>
+            <div class="list" id="list" role="list"></div>
+            <div class="empty" id="empty" aria-live="polite">
+              <div class="empty-icon" id="empty-icon"></div>
+              <div class="empty-title" id="empty-title"></div>
+              <div class="empty-hint" id="empty-hint"></div>
+            </div>
+          </section>
+
+          <section class="view view-settings" id="view-settings" aria-label="Settings">
+            <div class="settings-scroll" id="settings-scroll">
+              <div class="set-card">
+                <div class="profile-row">
+                  <div class="avatar avatar-lg" id="set-avatar" aria-hidden="true"></div>
+                  <div class="profile-fields">
+                    <label class="field-label" for="set-name">Your name</label>
+                    <input type="text" class="field" id="set-name" data-testid="setting-name" maxlength="40" placeholder="Your name" autocomplete="off" spellcheck="false">
+                  </div>
+                </div>
+                <div class="profile-actions">
+                  <button type="button" class="btn btn-sm" id="photo-btn"><i data-icon="camera"></i><span id="photo-btn-label">Choose photo</span></button>
+                  <button type="button" class="btn btn-sm btn-quiet" id="photo-remove">Remove</button>
+                  <input type="file" id="photo-input" accept="image/*" hidden>
+                </div>
+              </div>
+
+              <div class="set-card">
+                <label class="set-row">
+                  <span class="set-text"><span class="set-label">Keep on top</span><span class="set-hint">Stay above other windows</span></span>
+                  <input type="checkbox" role="switch" class="switch" id="set-ontop" data-testid="setting-ontop">
+                </label>
+                <label class="set-row">
+                  <span class="set-text"><span class="set-label">Launch at startup</span><span class="set-hint">Opens Dooo when you sign in to Windows</span></span>
+                  <input type="checkbox" role="switch" class="switch" id="set-autostart" data-testid="setting-autostart">
+                </label>
+              </div>
+
+              <div class="set-card">
+                <div class="set-row">
+                  <span class="set-text"><span class="set-label">Clear completed</span><span class="set-hint" id="clear-hint"></span></span>
+                  <button type="button" class="btn btn-sm" id="clear-done">Clear</button>
+                </div>
+              </div>
+
+              <div class="set-foot">
+                <span class="version" id="version"></span>
+                <button type="button" class="btn btn-sm btn-danger" id="quit-btn"><i data-icon="power"></i>Quit</button>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <footer class="bottom">
+          <nav class="nav" id="nav" aria-label="Views">
+            <span class="nav-indicator" id="nav-indicator" aria-hidden="true"></span>
+            <button type="button" class="nav-item" data-view="tasks" data-testid="nav-tasks" title="Home"><i data-icon="house"></i><span class="nav-label">Home</span></button>
+            <button type="button" class="nav-item" data-view="done" data-testid="nav-done" title="Done"><i data-icon="list-checks"></i><span class="nav-label">Done</span></button>
+            <button type="button" class="nav-item" data-view="settings" data-testid="nav-settings" title="Settings"><i data-icon="settings"></i><span class="nav-label">Settings</span></button>
+          </nav>
+          <button type="button" class="fab" id="fab" data-testid="fab-add" aria-label="New task" title="New task (Ctrl+N)"><i data-icon="plus"></i></button>
+        </footer>
+
+        <div class="toast" id="toast" role="status" aria-live="polite">
+          <span class="toast-text" id="toast-text"></span>
+          <button type="button" class="toast-undo" id="toast-undo" data-testid="toast-undo">Undo</button>
+        </div>
+
+        <div class="sheet-wrap" id="sheet-wrap">
+          <div class="sheet-backdrop" id="sheet-backdrop"></div>
+          <form class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" autocomplete="off" novalidate>
+            <div class="sheet-head">
+              <h2 class="sheet-title" id="sheet-title">New task</h2>
+              <button type="button" class="icon-btn icon-btn-sm" id="sheet-close" aria-label="Close"><i data-icon="x"></i></button>
+            </div>
+            <textarea class="field field-title" id="task-input" data-testid="task-input" rows="2" maxlength="300" placeholder="What needs doing?" spellcheck="true"></textarea>
+            <div class="sheet-row">
+              <span class="sheet-label">Priority</span>
+              <div class="seg" role="radiogroup" aria-label="Priority">
+                <button type="button" class="seg-btn" data-prio="high" data-testid="priority-high" role="radio" aria-checked="false">High<i data-icon="trend-up"></i></button>
+                <button type="button" class="seg-btn" data-prio="medium" data-testid="priority-medium" role="radio" aria-checked="true">Medium<i data-icon="trend-flat"></i></button>
+                <button type="button" class="seg-btn" data-prio="low" data-testid="priority-low" role="radio" aria-checked="false">Low<i data-icon="trend-down"></i></button>
+              </div>
+            </div>
+            <div class="sheet-row">
+              <span class="sheet-label">Due</span>
+              <div class="chips">
+                <button type="button" class="chip" data-due="today" aria-pressed="false">Today</button>
+                <button type="button" class="chip" data-due="tomorrow" aria-pressed="false">Tomorrow</button>
+                <span class="chip-anchor">
+                  <button type="button" class="chip" data-due="pick" aria-pressed="false"><i data-icon="calendar"></i><span id="pick-label">Date</span></button>
+                  <input type="date" class="picker-input" id="due-date" tabindex="-1" aria-label="Due date">
+                </span>
+                <button type="button" class="chip-clear" id="date-clear" aria-label="Clear due date" title="Clear due date"><i data-icon="x"></i></button>
+              </div>
+            </div>
+            <div class="sheet-row">
+              <span class="sheet-label">Time</span>
+              <div class="chips">
+                <span class="chip-anchor">
+                  <button type="button" class="chip" id="time-chip" aria-pressed="false"><i data-icon="clock"></i><span id="time-label">Add time</span></button>
+                  <input type="time" class="picker-input" id="due-time" tabindex="-1" aria-label="Due time">
+                </span>
+                <button type="button" class="chip-clear" id="time-clear" aria-label="Clear time" title="Clear time"><i data-icon="x"></i></button>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary sheet-save" id="task-submit" data-testid="task-submit">Add task</button>
+          </form>
+        </div>
+
+        <div class="menu" id="menu" role="menu"></div>
+
+        <div class="drop-overlay" id="drop-overlay" aria-hidden="true">
+          <div class="drop-frame">
+            <div class="drop-icon" id="drop-icon"></div>
+            <div class="drop-title" id="drop-title">Drop to add</div>
+            <div class="drop-hint" id="drop-hint">Each line becomes a task</div>
+          </div>
+        </div>
+
+        <div class="drag-layer" id="drag-layer" aria-hidden="true"></div>
+
+        <!-- Invisible no-drag band along the panel edge (see .moat in app.css). -->
+        <div class="moat" aria-hidden="true"><i class="moat-t"></i><i class="moat-r"></i><i class="moat-b"></i><i class="moat-l"></i></div>
+      </div>
+
+      <button type="button" class="hide-btn" id="hide-btn" data-testid="hide-window" aria-label="Hide to tray" title="Hide to tray"><i data-icon="x"></i></button>
+      <div class="resize-grip" id="resize-grip" data-testid="resize-grip" title="Resize" aria-hidden="true">
+        <svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M17.19 2.68A30 30 0 0 1 2.68 17.19"/></svg>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

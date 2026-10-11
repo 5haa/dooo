@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Dooo</title>
+  <defs>
+    <linearGradient id="tile" gradientUnits="userSpaceOnUse" x1="154.12" y1="0.9" x2="869.88" y2="1023.1">
+      <stop offset="0" stop-color="#ff7b7b"/>
+      <stop offset="1" stop-color="#f2434a"/>
+    </linearGradient>
+    <clipPath id="clip">
+      <path d="M644.8 64c110.33 0 165.5 0 207.64 21.47a197 197 0 0 1 86.09 86.09c21.47 42.14 21.47 97.31 21.47 207.64L960 644.8c0 110.33 0 165.5 -21.47 207.64a197 197 0 0 1 -86.09 86.09c-42.14 21.47 -97.31 21.47 -207.64 21.47L379.2 960c-110.33 0 -165.5 0 -207.64 -21.47a197 197 0 0 1 -86.09 -86.09c-21.47 -42.14 -21.47 -97.31 -21.47 -207.64L64 379.2c0 -110.33 0 -165.5 21.47 -207.64a197 197 0 0 1 86.09 -86.09c42.14 -21.47 97.31 -21.47 207.64 -21.47Z"/>
+    </clipPath>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.01"/>
+    </linearGradient>
+    <filter id="blur" filterUnits="userSpaceOnUse" x="0" y="-12" width="1024" height="1024">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  <path d="M644.8 64c110.33 0 165.5 0 207.64 21.47a197 197 0 0 1 86.09 86.09c21.47 42.14 21.47 97.31 21.47 207.64L960 644.8c0 110.33 0 165.5 -21.47 207.64a197 197 0 0 1 -86.09 86.09c-42.14 21.47 -97.31 21.47 -207.64 21.47L379.2 960c-110.33 0 -165.5 0 -207.64 -21.47a197 197 0 0 1 -86.09 -86.09c-21.47 -42.14 -21.47 -97.31 -21.47 -207.64L64 379.2c0 -110.33 0 -165.5 21.47 -207.64a197 197 0 0 1 86.09 -86.09c42.14 -21.47 97.31 -21.47 207.64 -21.47Z" fill="url(#tile)"/>
+  <g clip-path="url(#clip)">
+    <path d="M64 64H960V368.64Q512 440.32 64 368.64Z" fill="url(#gloss)"/>
+  </g>
+  <path d="M311.7 498.04L445.7 632.04L711.7 366.04" transform="translate(0 12)" fill="none" stroke="#9a1220" stroke-opacity="0.26" stroke-width="108" stroke-linecap="round" stroke-linejoin="round" filter="url(#blur)"/>
+  <path d="M311.7 498.04L445.7 632.04L711.7 366.04" fill="none" stroke="#fff" stroke-width="108" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
