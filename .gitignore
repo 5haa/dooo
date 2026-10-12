@@ -9,5 +9,6 @@ Thumbs.db
 .env.*
 !.env.example
 cloud.json
+agent.json
 cloud-state.json*
 .railway/

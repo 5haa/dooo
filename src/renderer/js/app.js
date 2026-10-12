@@ -86,7 +86,7 @@
   function rowFor(id) { return Array.from($('list').children).find(function (el) { return el.dataset.id === id; }); }
   function createRow(task) {
     var row = U.el('div', { class: 'task-row', role: 'listitem', tabindex: '0', 'data-testid': 'task-card' }, [
-      U.el('div', { class: 'task-body' }, [U.el('span', { class: 'task-title' }), D.icon('loader', 'ai-working'), U.el('div', { class: 'task-meta' })]),
+      U.el('div', { class: 'task-body' }, [U.el('span', { class: 'task-title' }), D.icon('loader', 'ai-working'), U.el('div', { class: 'task-meta' }), U.el('div', { class: 'agent-details', role: 'note', hidden: true })]),
       U.el('button', { type: 'button', class: 'task-delete icon-btn', 'aria-label': 'Delete task', title: 'Delete task' }, [D.icon('x')]),
       U.el('button', { type: 'button', class: 'task-check', 'data-testid': 'task-toggle' }, [D.icon('check')])
     ]);
@@ -128,6 +128,20 @@
       if (task.priority !== 'none') meta.append(U.el('span', { class: 'task-tag prio-' + task.priority }, [task.priority[0].toUpperCase() + task.priority.slice(1)]));
       var due = U.formatDue(task.due);
       if (due) meta.append(U.el('span', { class: due.overdue && !task.done ? 'overdue' : '' }, [due.label]));
+      var evidence = row.querySelector('.agent-details');
+      var verified = task.done && task.agentStatus === 'completed' && task.completedAt === task.agentCompletedAt && task.title === task.agentTaskTitle;
+      var working = !task.done && task.agentStatus === 'in_progress' && task.agentLeaseUntil > Date.now();
+      var hasAgent = verified || (!task.done && (task.agentStatus === 'in_progress' || task.agentStatus === 'blocked'));
+      if (hasAgent) {
+        var label = (verified ? 'Verified by ' : working ? 'Working: ' : 'Paused: ') + task.agentName;
+        evidence.id = 'agent-evidence-' + task.id;
+        var report = null; try { report = JSON.parse(task.agentVerification || 'null'); } catch {}
+        if (!report || !Array.isArray(report.checks)) report = null;
+        evidence.textContent = label + '\n' + (task.agentSummary || '') + (report ? '\n\n' + report.summary + '\n' + report.checks.filter(function (check) { return check && typeof check === 'object'; }).slice(0, 12).map(function (check) {
+          return String(check.outcome || 'unknown').toUpperCase() + ' · ' + check.name + '\n' + check.method + '\n' + check.result;
+        }).join('\n\n') : '');
+        meta.append(U.el('button', { type: 'button', class: 'agent-status', 'aria-label': label + '. Show details', title: label + ' · show details', 'aria-expanded': String(!evidence.hidden), 'aria-controls': evidence.id }, [D.icon(verified ? 'circle-check' : working ? 'loader' : 'clock')]));
+      } else evidence.hidden = true;
       meta.hidden = !meta.childNodes.length;
       if ($('list').children[i] !== row) {
         var next = $('list').children[i] || null;
@@ -225,7 +239,11 @@
     $('list').addEventListener('click', function (e) {
       var row = e.target.closest('.task-row');
       if (!row) { $('task-input').focus(); return; }
-      if (e.target.closest('.task-check')) toggle(row.dataset.id);
+      if (e.target.closest('.agent-status')) {
+        var evidence = row.querySelector('.agent-details'); evidence.hidden = !evidence.hidden;
+        e.target.closest('.agent-status').setAttribute('aria-expanded', String(!evidence.hidden));
+      } else if (e.target.closest('.agent-details')) return;
+      else if (e.target.closest('.task-check')) toggle(row.dataset.id);
       else if (e.target.closest('.task-delete')) { var action = S.remove(row.dataset.id); render(); notify('Task deleted', function () { action(); render(); }); }
       else edit(S.get(row.dataset.id));
     });

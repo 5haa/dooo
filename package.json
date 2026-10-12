@@ -17,9 +17,14 @@
     "test:e2e": "node tests/e2e.js",
     "test:unit": "node tests/unit.js",
     "test:ai": "node --test tests/ai.test.js",
-    "test:ai:e2e": "node tests/ai-electron.js"
+    "test:ai:e2e": "node tests/ai-electron.js",
+    "start:mcp": "node src/agents/mcp.js",
+    "connect:agents": "node scripts/connect-agents.js",
+    "test:agents": "node --test tests/agents.test.js",
+    "test:agents:e2e": "node tests/agents-integration.js"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
     "electron": "^44.7.0",
     "electron-builder": "^26.15.3",
     "playwright-core": "^1.64.0"
@@ -60,6 +65,8 @@
     }
   },
   "dependencies": {
-    "pg": "^8.23.1"
+    "@modelcontextprotocol/server": "^2.3.1",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   }
 }

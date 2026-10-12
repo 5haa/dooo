@@ -40,6 +40,12 @@ body.leaving .floating-card { opacity: 0; transform: translateY(-5px) scale(.98)
 .task-title { font-size: 12px; line-height: 20px; font-weight: 500; overflow-wrap: anywhere; background-image: linear-gradient(#808080,#808080); background-repeat: no-repeat; background-position: 0 55%; background-size: 0 1px; transition: background-size 220ms cubic-bezier(.16,1,.3,1), color 220ms ease-out; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .is-done .task-title { background-size: 100% 1px; color: #767676; }
 .task-meta { display: flex; flex-wrap: wrap; gap: 4px 7px; margin-top: 3px; color: var(--muted); font-size: 10px; }
+.agent-status { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; color: var(--muted); transition: background 150ms ease-out, color 150ms ease-out; }
+.agent-status:hover, .agent-status[aria-expanded="true"] { background: var(--field); color: var(--ink); }
+.agent-status:focus-visible { background: var(--focus-surface); color: var(--ink); }
+.agent-status .icon { width: 14px; height: 14px; }
+.agent-status .icon-loader { animation: ai-turn 1s linear infinite; }
+.agent-details { max-height: 160px; overflow-y: auto; margin-top: 6px; padding: 8px; border-radius: 8px; background: var(--field); color: var(--muted); font-size: 10px; line-height: 16px; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; cursor: text; }
 .task-tag { padding: 0 5px; border-radius: 4px; font-weight: 600; }
 .prio-high { color: #a02c32; background: #ffedef; }
 .prio-medium { color: #875200; background: #fff2dc; }
