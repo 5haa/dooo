@@ -23,7 +23,7 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
   if (agentToken && (agentToken.length < 32 || agentToken === token)) throw new Error('Use a separate agent token of at least 32 characters');
   const agentExpected = agentToken ? digest('Bearer ' + agentToken) : null;
   if (workerToken && [token, agentToken].includes(workerToken)) throw new Error('Use a separate worker key');
-  const control = await createControl({ pool, workerToken, origin, openrouterKey, vapid, pushImpl, modelFetch });
+  const control = await createControl({ pool, workerToken, origin, openrouterKey, safetyModel: model, vapid, pushImpl, modelFetch });
   const attempts = new Map();
   let aiActive = 0, aiRequests = [];
   function reply(res, status, body) {

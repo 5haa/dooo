@@ -5,8 +5,9 @@ const { digest, equalToken, ControlError, fail, text, uuid, ACTIVE } = require('
 const { applyAction, fingerprint } = require('./agent-api');
 const { validateState } = require('../shared/cloud-state');
 const { redact } = require('../shared/project-context');
+const { assessAction } = require('./action-risk');
 const MODEL = 'bytedance/ui-tars-1.5-7b';
-async function createControl({ pool, workerToken, origin, openrouterKey, vapid, pushImpl, modelFetch = fetch }) {
+async function createControl({ pool, workerToken, origin, openrouterKey, safetyModel = require('./task-ai').MODEL, vapid, pushImpl, modelFetch = fetch }) {
   if (!workerToken) return null;
   if (workerToken.length < 32) throw new Error('Worker key is too short');
   const base = new URL(origin);
@@ -79,16 +80,19 @@ async function createControl({ pool, workerToken, origin, openrouterKey, vapid, 
   async function start(input, source = 'phone', session) {
     const requestId = uuid(input.requestId), deviceId = uuid(input.deviceId);
     const instruction = redact(text(input.instruction, 'instruction', 2000));
+    const mode = input.mode || 'browser';
+    if (!['browser', 'desktop'].includes(mode)) fail(400, 'Choose Browser or Desktop control');
     return transaction(async client => {
       await recover(client);
-      const previous = (await client.query('SELECT * FROM dooo_runs WHERE request_id=$1', [requestId])).rows[0]; if (previous) { if (previous.device_id !== deviceId || previous.instruction !== instruction || previous.task_id !== (input.taskId || null) || previous.source !== source) fail(409, 'Request ID was already used for another instruction'); return previous; }
+      const previous = (await client.query('SELECT * FROM dooo_runs WHERE request_id=$1', [requestId])).rows[0]; if (previous) { if (previous.device_id !== deviceId || previous.instruction !== instruction || previous.task_id !== (input.taskId || null) || previous.source !== source || previous.mode !== mode) fail(409, 'Request ID was already used for another instruction'); return previous; }
       const device = (await client.query('SELECT * FROM dooo_devices WHERE id=$1 FOR UPDATE', [deviceId])).rows[0];
       if (!device || !device.enabled || device.locked || Date.now() - new Date(device.last_seen) > 30000) fail(409, 'PC is offline, paused or locked. Open Dooo on your unlocked PC.');
+      if (mode === 'browser' && device.control_version < 2) fail(409, 'Restart the updated Dooo app on your PC to use the background browser.');
       if ((await client.query("SELECT id FROM dooo_runs WHERE device_id=$1 AND status IN ('queued','running','waiting_approval')", [deviceId])).rows.length) fail(409, 'Your PC is already running a request. Stop it or wait for it to finish.');
       const id = randomUUID(), taskId = input.taskId ? text(input.taskId, 'task ID', 128) : null;
       const taskSession = session || { id, client: 'UI-TARS · phone' }; let taskRun = null;
       if (taskId) taskRun = await mutate(client, data => applyAction(data, { action: 'start_task', args: { taskId, summary: instruction }, session: taskSession }).result.runId);
-      const result = await client.query('INSERT INTO dooo_runs(id,request_id,device_id,instruction,task_id,task_run_id,task_session,source) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *', [id, requestId, deviceId, instruction, taskId, taskRun, JSON.stringify(taskSession), source]);
+      const result = await client.query('INSERT INTO dooo_runs(id,request_id,device_id,instruction,task_id,task_run_id,task_session,source,mode) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *', [id, requestId, deviceId, instruction, taskId, taskRun, JSON.stringify(taskSession), source, mode]);
       await event(client, id, 'queued', 'Waiting for your PC'); return result.rows[0];
     });
   }
@@ -125,7 +129,7 @@ async function createControl({ pool, workerToken, origin, openrouterKey, vapid, 
     if (route === 'state' && req.method === 'GET') {
       await transaction(recover);
       const data = await workspace(), devices = (await pool.query('SELECT * FROM dooo_devices ORDER BY name')).rows;
-      const runs = (await pool.query('SELECT id,device_id,instruction,task_id,status,summary,created_at,updated_at FROM dooo_runs ORDER BY created_at DESC LIMIT 30')).rows;
+      const runs = (await pool.query('SELECT id,device_id,instruction,task_id,mode,status,summary,created_at,updated_at FROM dooo_runs ORDER BY created_at DESC LIMIT 30')).rows;
       send(res, 200, { projects: data.projects.map(p => ({ id: p.id, name: p.name })), tasks: data.tasks.map(t => ({ id: t.id, projectId: t.projectId, title: t.title, done: t.done, createdAt: t.createdAt, completedAt: t.completedAt })), devices: devices.map(d => ({ ...d, online: Date.now() - new Date(d.last_seen) < 30000 })), runs, vapidPublicKey: vapid?.publicKey || null }); return;
     }
     if (route === 'session' && req.method === 'DELETE') { await pool.query('DELETE FROM dooo_phone_sessions WHERE hash=$1', [sessionHash]); send(res, 200, { ok: true }, { 'Set-Cookie': cookie('', 0) }); return; }
@@ -204,7 +208,7 @@ async function createControl({ pool, workerToken, origin, openrouterKey, vapid, 
     const input = await body(req, route === 'frame' ? 2500000 : 64000);
     const deviceId = uuid(input.deviceId), instanceId = uuid(input.instanceId);
     if (route === 'heartbeat') {
-      await pool.query('INSERT INTO dooo_devices(id,name,locked) VALUES($1,$2,$3) ON CONFLICT(id) DO UPDATE SET name=$2,locked=$3,last_seen=now()', [deviceId, text(input.name, 'PC name', 80), input.locked === true]);
+      await pool.query('INSERT INTO dooo_devices(id,name,locked,control_version) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO UPDATE SET name=$2,locked=$3,control_version=$4,last_seen=now()', [deviceId, text(input.name, 'PC name', 80), input.locked === true, input.controlVersion === 2 ? 2 : 1]);
       const result = await transaction(async client => {
         await recover(client);
         const runs = (await client.query("SELECT * FROM dooo_runs WHERE device_id=$1 AND instance_id=$2 AND status IN ('running','waiting_approval') FOR UPDATE", [deviceId, instanceId])).rows;
@@ -233,6 +237,18 @@ async function createControl({ pool, workerToken, origin, openrouterKey, vapid, 
       await pool.query('INSERT INTO dooo_frames(device_id,image,width,height) VALUES($1,$2,$3,$4) ON CONFLICT(device_id) DO UPDATE SET image=$2,width=$3,height=$4,updated_at=now()', [deviceId, image, input.width, input.height]); send(res, 200, { ok: true }); return;
     }
     if (route === 'event') { await owned(pool, input); await event(pool, input.runId, 'progress', text(input.summary, 'summary')); send(res, 200, { ok: true }); return; }
+    if (route === 'assess') {
+      const run = await owned(pool, input);
+      if (run.status !== 'running') fail(409, 'Run is waiting for approval');
+      if (!input.action || typeof input.action.action_type !== 'string' || JSON.stringify(input.action).length > 6000 || JSON.stringify(input.context || {}).length > 7000) fail(400, 'Invalid action to check');
+      const frame = (await pool.query("SELECT image FROM dooo_frames WHERE device_id=$1 AND updated_at>now()-interval '1 minute'", [deviceId])).rows[0];
+      if (!frame) fail(409, 'A fresh screen is required before input');
+      if (!(await pool.query('UPDATE dooo_runs SET safety_calls=safety_calls+1 WHERE id=$1 AND safety_calls<40 RETURNING id', [run.id])).rows.length) fail(429, 'This request reached its action limit');
+      let risk;
+      try { risk = await assessAction({ action: input.action, context: input.context || {}, image: frame.image, instruction: run.instruction, mode: run.mode, key: openrouterKey, model: safetyModel, modelFetch }); }
+      catch (error) { fail(503, /Safety check/.test(error.message) ? error.message : 'Safety check timed out. No input was sent. Try again.'); }
+      await owned(pool, input); send(res, 200, risk); return;
+    }
     if (route === 'approval') {
       const approval = await transaction(async client => {
         const run = await owned(client, input, true); if (run.status !== 'running') fail(409, 'Already waiting for approval');

@@ -20,7 +20,7 @@ Existing Electron desktop cards sync with PostgreSQL on Railway. The phone uses 
 
 ## Capabilities and Constraints
 
-Phone task entry, project lists, natural-language PC requests, visible run progress, stop controls and approval notifications. Sensitive actions pause for the owner. The PC worker must be online; locked or sleeping Windows cannot be controlled. No task executes merely because it exists.
+Phone task entry, project lists, natural-language PC requests, visible run progress, stop controls and approval notifications. Routine actions continue automatically; sensitive actions pause for the owner after a screenshot/target consequence check. Browser mode runs in a separate Chromium session with independent input. Desktop mode uses the shared Windows mouse and keyboard. The PC worker must be online; locked or sleeping Windows cannot be controlled. No task executes merely because it exists.
 
 ## Brand Commitments
 

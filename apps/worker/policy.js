@@ -2,7 +2,7 @@
 const { digest } = require('../../packages/control');
 const SAFE = new Set(['wait', 'scroll', 'mouse_move', 'hover']);
 const END = new Set(['finished', 'call_user', 'user_stop']);
-const ACTIONS = new Set([...SAFE, ...END, 'click', 'left_click', 'left_single', 'left_double', 'double_click', 'right_click', 'right_single', 'drag', 'hotkey', 'type']);
+const ACTIONS = new Set([...SAFE, ...END, 'click', 'left_click', 'left_single', 'left_double', 'double_click', 'right_click', 'right_single', 'drag', 'hotkey', 'type', 'navigate', 'navigate_back']);
 function validateAction(parsed) {
   if (!parsed || !ACTIONS.has(parsed.action_type)) throw new Error('The model proposed an unsupported action');
   const args = parsed.action_inputs || {};
@@ -15,11 +15,17 @@ function validateAction(parsed) {
   if (parsed.action_type === 'type' && (typeof args.content !== 'string' || args.content.length > 3000)) throw new Error('Typing request is too long');
   if (parsed.action_type === 'hotkey' && (typeof (args.key || args.hotkey) !== 'string' || (args.key || args.hotkey).length > 100)) throw new Error('Invalid keyboard shortcut');
   if (parsed.action_type === 'scroll' && !['up', 'down'].includes(args.direction)) throw new Error('Invalid scroll direction');
-  return { type: parsed.action_type, args, requiresApproval: !SAFE.has(parsed.action_type) && !END.has(parsed.action_type), terminal: END.has(parsed.action_type) };
+  if (parsed.action_type === 'navigate') {
+    let url; try { url = new URL(args.content); } catch { throw new Error('Invalid browser address'); }
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.href.length > 2000) throw new Error('Only web addresses are supported');
+  }
+  return { type: parsed.action_type, args, needsRiskCheck: !SAFE.has(parsed.action_type) && !END.has(parsed.action_type), terminal: END.has(parsed.action_type) };
 }
 function describeAction(action) {
   if (action.type === 'type') return 'Type: ' + action.args.content;
   if (action.type === 'hotkey') return 'Press ' + (action.args.key || action.args.hotkey);
+  if (action.type === 'navigate') return 'Open ' + action.args.content;
+  if (action.type === 'navigate_back') return 'Go back';
   const names = { click: 'Click', left_click: 'Click', left_single: 'Click', left_double: 'Double-click', double_click: 'Double-click', right_click: 'Right-click', right_single: 'Right-click', drag: 'Drag', scroll: 'Scroll', mouse_move: 'Move pointer', hover: 'Move pointer', wait: 'Wait' };
   const box = action.args.start_box ? JSON.parse(action.args.start_box) : null;
   return (names[action.type] || action.type) + (box ? ' at ' + Math.round((box[0] + (box[2] ?? box[0])) / 2 * 100) + '%, ' + Math.round((box[1] + (box[3] ?? box[1])) / 2 * 100) + '%' : '') + (action.args.direction ? ' ' + action.args.direction : '');

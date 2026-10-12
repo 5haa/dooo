@@ -37,19 +37,20 @@ function renderProjects(){
   });
   if(focusId?.startsWith('draft-')){const input=$(focusId);if(input){input.focus({preventScroll:true});input.setSelectionRange(selection,selection);}}
 }
-function renderPC(){const device=pc();$('pc-name').textContent=device?.name||'Your computer';$('pc-status').textContent=!device?'Open Dooo on your PC to connect':!device.online?'PC offline':device.locked?'PC paused or Windows locked':busy()?'PC connected · request active':'PC connected';$('start-run').disabled=!canRun();$('refresh-screen').disabled=!canRun();$('approval-dot').hidden=!state.runs.some(r=>r.status==='waiting_approval');
+function modeHelp(){$('mode-help').textContent=$('control-mode').value==='browser'?'Separate browser · your mouse stays free':'Windows apps · uses your mouse and keyboard';$('instruction').placeholder=$('control-mode').value==='browser'?'Open neuvix.io and check the homepage…':'Open an app on my desktop…';}
+function renderPC(){const active=state.runs.find(r=>['queued','running','waiting_approval'].includes(r.status));if(active){$('control-mode').value=active.mode||'desktop';modeHelp();}const device=pc();$('pc-name').textContent=device?.name||'Your computer';$('pc-status').textContent=!device?'Open Dooo on your PC to connect':!device.online?'PC offline':device.locked?'PC paused or Windows locked':busy()?'PC connected · request active':'PC connected';$('start-run').disabled=!canRun();$('refresh-screen').disabled=!canRun();$('control-mode').disabled=!!busy();$('approval-dot').hidden=!state.runs.some(r=>r.status==='waiting_approval');
   const recent=$('recent-runs');recent.replaceChildren();for(const run of state.runs.slice(0,12)){const b=el('button','',run.instruction==='[preview]'?'Screen preview':run.instruction);b.type='button';b.append(el('span','',labels[run.status]||run.status));b.onclick=()=>{runId=run.id;void refreshRun();};recent.append(b);}
 }
 const labels={queued:'Waiting for your PC',running:'Working on your PC',waiting_approval:'Waiting for you',review:'Ready to review',blocked:'Needs your attention',failed:'Could not finish',cancelled:'Stopped',completed:'Task complete'};
 async function refreshRun(){if(!runId||!paired){$('run-view').hidden=true;$('approval').hidden=true;return;}try{
-  runData=await api('run/'+runId);const {run,events,approval}=runData;$('run-view').hidden=false;$('run-state').textContent=labels[run.status]||run.status;$('run-instruction').textContent=run.instruction==='[preview]'?'Screen preview':run.instruction;$('run-summary').textContent=run.summary;
+  runData=await api('run/'+runId);const {run,events,approval}=runData;$('run-view').hidden=false;$('run-state').textContent=labels[run.status]||run.status;$('run-instruction').textContent=(run.mode==='browser'?'Browser · ':'Desktop · ')+(run.instruction==='[preview]'?'Screen preview':run.instruction);$('run-summary').textContent=run.summary;
   $('stop-run').hidden=!['queued','running','waiting_approval'].includes(run.status);$('complete-run').hidden=run.status!=='review'||!run.task_id;
   $('approval').hidden=!approval;$('allow-action').disabled=false;$('deny-action').disabled=false;
   if(approval){$('approval-action').textContent=approval.description;const content=approval.action?.action_inputs?.content;$('approval-detail').hidden=!content;$('approval-detail').textContent=content||'';}
   const list=$('run-events');list.replaceChildren();for(const event of events.slice(-20))list.append(el('li','',event.summary));
   const target=$('action-target');target.hidden=true;
   if(approval?.action?.action_inputs?.start_box){try{const box=JSON.parse(approval.action.action_inputs.start_box);target.style.left=((box[0]+(box[2]??box[0]))/2*100)+'%';target.style.top=((box[1]+(box[3]??box[1]))/2*100)+'%';target.hidden=false;}catch{}}
-  const img=$('pc-screen');img.onload=()=>{img.hidden=false;$('screen').style.minHeight='0';$('screen-empty').hidden=true;$('screen-caption').textContent=approval?'Screen for this action':'Latest PC screen';};img.onerror=()=>{img.hidden=true;$('screen').style.minHeight='200px';$('screen-empty').hidden=false;};
+  const img=$('pc-screen');img.onload=()=>{img.hidden=false;$('screen').style.minHeight='0';$('screen-empty').hidden=true;$('screen-caption').textContent=approval?'Screen for this action':run.mode==='browser'?'Background browser':'Windows desktop';};img.onerror=()=>{img.hidden=true;$('screen').style.minHeight='200px';$('screen-empty').hidden=false;};
   if(view==='pc')img.src='/api/mobile/frame/'+run.device_id+'?at='+Date.now();
 }catch(e){$('connection-status').textContent=e.message;}}
 async function refresh(){if(refreshing)return;refreshing=true;try{
@@ -59,7 +60,7 @@ async function refresh(){if(refreshing)return;refreshing=true;try{
 }catch(e){$('connection-status').textContent=e.message;if(!paired&&!$('pair-view').hidden){}else if(!paired){$('pair-view').hidden=false;toast('Connect to the internet to load Dooo.');}}
 finally{refreshing=false;}}
 async function start(instruction,taskId){if(!canRun()){toast(busy()?'Wait for the current request or stop it first.':'Open Dooo on your awake, unlocked PC.');showView('pc');return;}
-  $('start-run').disabled=true;try{const data=await api('run',{requestId:crypto.randomUUID(),deviceId:pc().id,instruction,taskId});runId=data.run.id;$('instruction').value='';showView('pc');await refresh();}catch(e){toast(e.message);$('start-run').disabled=false;}}
+  $('start-run').disabled=true;try{const data=await api('run',{requestId:crypto.randomUUID(),deviceId:pc().id,instruction,taskId,mode:$('control-mode').value});runId=data.run.id;$('instruction').value='';showView('pc');await refresh();}catch(e){toast(e.message);$('start-run').disabled=false;}}
 async function notifications(){try{
   if(!('Notification'in window)||!('PushManager'in window)||!('serviceWorker'in navigator))throw new Error('Install Dooo on your Home Screen, then enable notifications.');
   const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('Notifications are off. Enable them in your browser or phone settings.');
@@ -71,6 +72,7 @@ $('pair-form').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelec
 $('tasks-tab').onclick=()=>showView('tasks');$('pc-tab').onclick=()=>showView('pc');$('settings-button').onclick=()=>showView('settings');$('close-settings').onclick=()=>showView('tasks');
 $('add-project').onclick=()=>{$('project-form').hidden=!$('project-form').hidden;if(!$('project-form').hidden)$('project-name').focus();};
 $('project-form').onsubmit=async e=>{e.preventDefault();try{await api('project',{name:$('project-name').value.trim()});$('project-name').value='';$('project-form').hidden=true;await refresh();}catch(error){toast(error.message);}};
+$('control-mode').onchange=()=>{modeHelp();if(!busy()){runId=null;runData=null;$('pc-screen').hidden=true;$('action-target').hidden=true;$('screen-empty').hidden=false;$('screen').style.minHeight='200px';$('screen-caption').textContent='Refresh for a preview';void refreshRun();}};
 $('control-form').onsubmit=e=>{e.preventDefault();void start($('instruction').value.trim());};$('refresh-screen').onclick=()=>start('[preview]');
 $('stop-run').onclick=async()=>{try{await api('run/'+runId+'/stop',{});await refresh();}catch(e){toast(e.message);}};
 async function answer(allow){const approvalId=runData?.approval?.id;if(!approvalId)return;$('allow-action').disabled=true;$('deny-action').disabled=true;try{await api('approval/'+approvalId,{allow});await refreshRun();}catch(e){toast(e.message);}}

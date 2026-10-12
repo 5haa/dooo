@@ -11,12 +11,13 @@ async function fixture(databaseUrl) {
   assert(['localhost', '127.0.0.1', '[::1]'].includes(new URL(databaseUrl).hostname), 'Tests require disposable loopback PostgreSQL');
   const probe = net.createServer(); await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve)); const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
   const origin = 'http://127.0.0.1:' + port, workerToken = 'worker-test-'.repeat(5), agentToken = 'agent-test-'.repeat(5), syncToken = 'sync-test-'.repeat(5), deviceId = randomUUID();
-  let calls = 0, executed = [], notifications = [];
+  let calls = 0, executed = [], notifications = [], risk = 'sensitive', predictions;
   const instance = await createServer({ databaseUrl, token: syncToken, agentToken, workerToken, origin, openrouterKey: 'test-only', vapid: { publicKey: 'fake-public', privateKey: 'fake-private' },
     pushImpl: async (_sub, data) => { notifications.push(JSON.parse(data)); },
     modelFetch: async (_url, options) => {
-      const input = JSON.parse(options.body); assert.equal(input.model, MODEL); assert(input.messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'image_url')));
-      const content = ++calls % 2 ? "Thought: Click the test target.\nAction: click(start_box='(500, 500)')" : 'Thought: The test target was clicked.\nAction: finished()';
+      const input = JSON.parse(options.body); assert(input.messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'image_url')));
+      if (input.model !== MODEL) return { ok: risk !== 'unavailable', json: async () => ({ choices: [{ message: { content: JSON.stringify({ risk, reason: risk === 'sensitive' ? 'Delete the test record' : 'Edit the search field' }) } }] }) };
+      const content = predictions ? predictions[calls++] || 'Thought: Done.\nAction: finished()' : ++calls % 2 ? "Thought: Click the test target.\nAction: click(start_box='(500, 500)')" : 'Thought: The test target was clicked.\nAction: finished()';
       return { ok: true, json: async () => ({ id: randomUUID(), model: MODEL, choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content } }], usage: { total_tokens: 100 } }) };
     }
   });
@@ -39,6 +40,8 @@ async function fixture(databaseUrl) {
   return { ...instance, origin, worker, workerToken, agentToken, syncToken, deviceId, raw, executed, notifications, request,
     pair: async () => { const code = (await request('/api/worker/pair', {}, { workerAuth: true })).data.code; const result = await request('/api/mobile/pair', { code }); assert.equal(result.status, 200); return { code, cookie }; },
     resetModel: () => { calls = 0; },
+    setRisk: value => { risk = value; },
+    setPredictions: values => { predictions = values; calls = 0; },
     close: async () => { worker.stop(); if (worker.execution) await worker.execution; await instance.close(); }
   };
 }

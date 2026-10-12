@@ -3,13 +3,36 @@ const { test } = require('node:test'), assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { validateAction, screenChanged, actionHash } = require('../apps/worker/policy');
 const { fixture, until, delay } = require('./control-fixture');
-test('only observational actions bypass approval; invalid and off-screen actions are rejected', () => {
-  assert.equal(validateAction({ action_type: 'scroll', action_inputs: { direction: 'down' } }).requiresApproval, false);
-  for (const parsed of [{ action_type: 'click', action_inputs: { start_box: '[0.5,0.5]' } }, { action_type: 'type', action_inputs: { content: 'hello\n' } }, { action_type: 'hotkey', action_inputs: { key: 'enter' } }]) assert(validateAction(parsed).requiresApproval);
+test('input gets a consequence check, not blanket approval; invalid actions are rejected', () => {
+  assert.equal(validateAction({ action_type: 'scroll', action_inputs: { direction: 'down' } }).needsRiskCheck, false);
+  for (const parsed of [{ action_type: 'click', action_inputs: { start_box: '[0.5,0.5]' } }, { action_type: 'type', action_inputs: { content: 'hello\n' } }, { action_type: 'hotkey', action_inputs: { key: 'enter' } }]) assert(validateAction(parsed).needsRiskCheck);
+  assert.throws(() => validateAction({ action_type: 'navigate', action_inputs: { content: 'file:///C:/Windows' } }));
+  assert.throws(() => validateAction({ action_type: 'navigate', action_inputs: { content: 'javascript:alert(1)' } }));
   assert.throws(() => validateAction({ action_type: 'shell', action_inputs: {} }));
   assert.throws(() => validateAction({ action_type: 'click', action_inputs: { start_box: '[1.5,0.5]' } }));
   const pixels = Buffer.alloc(64*36*4, 255); assert(!screenChanged(pixels, pixels)); assert(screenChanged(pixels, Buffer.alloc(pixels.length)));
   assert.equal(actionHash({ action_type:'click', action_inputs:{ start_box:'[0.5,0.5]' } }), actionHash({ action_inputs:{ start_box:'[0.5,0.5]' }, action_type:'click' }), 'JSONB key ordering cannot invalidate approval');
+});
+test('ordinary click/type/Enter finish without approval; unknown or failed risk checks send no input', { skip: !process.env.DOOO_TEST_DATABASE_URL }, async t => {
+  const f = await fixture(process.env.DOOO_TEST_DATABASE_URL); t.after(() => f.close()); await f.pair();
+  f.setRisk('routine'); f.setPredictions(["Action: click(start_box='(500,500)')", "Action: type(content='a normal search')", "Action: hotkey(key='enter')", 'Action: finished()']);
+  const payload={requestId:randomUUID(),deviceId:f.deviceId,instruction:'Search for the project'};
+  const started=await f.request('/api/mobile/run',payload);assert.equal(started.status,200);assert.equal(started.data.run.mode,'browser');
+  assert.equal((await f.request('/api/mobile/run',{...payload,mode:'desktop'})).status,409,'Idempotency includes control mode');
+  const result=await until(async()=>{const d=(await f.request('/api/mobile/run/'+started.data.run.id)).data;return d.run.status==='review'&&d;},'Routine request did not finish',25000);
+  assert.equal(f.executed.length,3);assert.equal(result.approval,null);assert.equal((await f.pool.query('SELECT count(*) FROM dooo_approvals')).rows[0].count,'0');
+  for(const risk of ['unavailable','invalid']) {
+    await until(()=>!f.worker.current,'Worker still finishing');f.setRisk(risk);f.setPredictions(["Action: click(start_box='(500,500)')"]);
+    const r=await f.request('/api/mobile/run',{...payload,requestId:randomUUID(),mode:'desktop'});
+    await until(async()=> (await f.request('/api/mobile/run/'+r.data.run.id)).data.run.status==='blocked','Failed safety check did not stop',25000);
+    assert.equal(f.executed.length,3,'No input on failed classification');
+  }
+});
+test('obvious deletion cannot be waved through by the classifier', async () => {
+  const {assessAction}=require('../src/server/action-risk');
+  const result=await assessAction({action:{action_type:'click',action_inputs:{start_box:'[0.5,0.5]'}},context:{target:'Delete account'},modelFetch:()=>{throw new Error('Should not consult model');}});
+  assert(result.requiresApproval);
+  const hotkey=await assessAction({action:{action_type:'hotkey',action_inputs:{key:'shift+delete'}},context:{editable:false}});assert(hotkey.requiresApproval);
 });
 test('paired phone → real UI-TARS SDK → approved worker action, verification review and notification', { skip: !process.env.DOOO_TEST_DATABASE_URL }, async t => {
   const f = await fixture(process.env.DOOO_TEST_DATABASE_URL); t.after(() => f.close());

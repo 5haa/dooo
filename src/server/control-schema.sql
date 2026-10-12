@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS dooo_runs (
   updated_at timestamptz NOT NULL DEFAULT now(), lease_until timestamptz
 );
 CREATE UNIQUE INDEX IF NOT EXISTS dooo_one_run_per_pc ON dooo_runs(device_id) WHERE status IN ('queued','running','waiting_approval');
+ALTER TABLE dooo_devices ADD COLUMN IF NOT EXISTS control_version integer NOT NULL DEFAULT 1;
+ALTER TABLE dooo_runs ADD COLUMN IF NOT EXISTS mode text NOT NULL DEFAULT 'desktop';
+ALTER TABLE dooo_runs ADD COLUMN IF NOT EXISTS safety_calls integer NOT NULL DEFAULT 0;
 CREATE TABLE IF NOT EXISTS dooo_run_events (
   id bigserial PRIMARY KEY, run_id uuid NOT NULL REFERENCES dooo_runs(id) ON DELETE CASCADE,
   kind text NOT NULL, summary text NOT NULL, created_at timestamptz NOT NULL DEFAULT now()

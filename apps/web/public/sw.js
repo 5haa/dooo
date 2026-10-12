@@ -1,4 +1,4 @@
-const CACHE = 'dooo-phone-v1';
+const CACHE = 'dooo-phone-v2';
 const SHELL = ['/', '/app.css', '/app.js', '/icon.svg', '/icon-192.png', '/icon-512.png', '/font.woff2', '/manifest.webmanifest'];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('dooo-phone-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())); });

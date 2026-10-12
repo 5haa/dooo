@@ -6,3 +6,5 @@
 @media(forced-colors:active){button,input,textarea{border:1px solid ButtonText}.solid{background:ButtonFace;color:ButtonText}.task.done .task-check{background:Highlight}}
 
 #action-target{position:absolute;width:26px;height:26px;border:2px solid white;border-radius:50%;box-shadow:0 0 0 2px #bd3434;transform:translate(-50%,-50%);background:#bd343444;pointer-events:none}
+
+.control-mode{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:18px}.control-mode label{font-size:12px;font-weight:650}.control-mode select{font:inherit;font-size:16px;color:inherit;background:#e9e9e9;border:0;border-radius:10px;min-height:44px;padding:8px 12px;max-width:100%;color-scheme:light}.control-mode select:focus-visible{outline:2px solid #505050;outline-offset:3px}.control-mode select:disabled{opacity:.5}.control-mode .help{flex-basis:100%}

@@ -36,6 +36,8 @@ else {
   app.setAppUserModelId('com.5haa.dooo');
   app.on('second-instance', () => { if (desktop) desktop.showAll(); });
   app.on('web-contents-created', (_event, contents) => {
+    // Remote web pages live only in this isolated, sandboxed session; its operator owns navigation guards.
+    if (contents.session === session.fromPartition('persist:dooo-automation')) return;
     contents.setWindowOpenHandler(() => ({ action: 'deny' }));
     contents.on('will-attach-webview', event => event.preventDefault());
     contents.on('will-navigate', event => event.preventDefault());
@@ -99,6 +101,7 @@ else {
       onPCPause: value => pcWorker?.setPaused(value),
       onPairPhone: showPhonePairing,
       onRevokePhones: async () => { try { await pcWorker.request('revoke-phones'); } catch {} },
+      onOpenBrowser: async () => { try { await pcWorker.showBrowser(); } catch (error) { await dialog.showMessageBox({ type: 'info', message: error.message }); } },
       onToggle: (key, value) => desktop.updateSettings({ [key]: value }), onQuit: () => app.quit()
     });
     if (cloud) cloud.start();
