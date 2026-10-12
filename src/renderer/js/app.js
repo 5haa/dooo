@@ -3,6 +3,7 @@
   'use strict';
   var D = window.Dooo, S = D.store, U = D.util, api = window.dooo;
   var state, latest, editing = null, draft = null, undo = null, toastTimer, drag = null, suppressClick = false, rowDrag = null;
+  var pendingAi = new Set(), editedDuringAi = new Set();
   function $(id) { return document.getElementById(id); }
   function command(action, value) { return api.desktop(action, value).catch(function (err) { notify(err.message.replace(/^Error invoking remote method '[^']+': Error: /, '')); }); }
   function notify(message, action) {
@@ -27,10 +28,12 @@
     $('details-toggle').title = open ? 'Hide task details' : 'Task details';
   }
   function inputChanged() {
+    $('composer-status').hidden = true;
     var input = $('task-input'); input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 94) + 'px';
     $('task-submit').hidden = !input.value.trim(); $('task-submit').disabled = !input.value.trim();
   }
   function edit(task) {
+    if (pendingAi.has(task.id)) editedDuringAi.add(task.id);
     if (!editing) draft = readDraft();
     editing = task.id;
     var due = U.parseDue(task.due);
@@ -45,7 +48,27 @@
     var day = $('due-date').value || ($('due-time').value ? U.dateKey(new Date()) : '');
     var fields = { title: title, priority: $('task-priority').value, due: day ? day + ($('due-time').value ? 'T' + $('due-time').value : '') : null };
     if (editing) { S.update(editing, fields); cancelEdit(); }
-    else { S.add(fields); populate(); $('task-input').focus(); }
+    else {
+      var useAi = state.aiAvailable && state.settings.aiRewriteEnabled !== false;
+      if (useAi) fields.originalText = title;
+      var added = S.add(fields).task;
+      populate(); $('task-input').focus();
+      if (useAi) simplify(added.id, title);
+    }
+    render();
+  }
+  async function simplify(id, original) {
+    pendingAi.add(id); render();
+    var result;
+    try { result = await api.rewriteTask(original); } catch { result = { error: 'unavailable' }; }
+    pendingAi.delete(id);
+    var task = S.get(id), edited = editedDuringAi.has(id); editedDuringAi.delete(id);
+    if (task && !edited && task.title === original && result.title) {
+      S.update(id, { title: result.title });
+      if (result.title !== original) notify('Task wording simplified', function () { S.update(id, { title: original }); render(); });
+    } else if (task && result.error) {
+      $('composer-status').textContent = 'AI unavailable · saved your wording'; $('composer-status').hidden = false;
+    }
     render();
   }
   function toggle(id) {
@@ -61,7 +84,7 @@
   function rowFor(id) { return Array.from($('list').children).find(function (el) { return el.dataset.id === id; }); }
   function createRow(task) {
     var row = U.el('div', { class: 'task-row', role: 'listitem', tabindex: '0', 'data-testid': 'task-card' }, [
-      U.el('div', { class: 'task-body' }, [U.el('span', { class: 'task-title' }), U.el('div', { class: 'task-meta' })]),
+      U.el('div', { class: 'task-body' }, [U.el('span', { class: 'task-title' }), D.icon('loader', 'ai-working'), U.el('div', { class: 'task-meta' })]),
       U.el('button', { type: 'button', class: 'task-delete icon-btn', 'aria-label': 'Delete task', title: 'Delete task' }, [D.icon('x')]),
       U.el('button', { type: 'button', class: 'task-check', 'data-testid': 'task-toggle' }, [D.icon('check')])
     ]);
@@ -88,7 +111,10 @@
       var row = existing.get(task.id) || createRow(task); existing.delete(task.id);
       if (isNew) added.push(row);
       row.classList.toggle('is-done', task.done); row.draggable = !task.done;
+      row.querySelector('.ai-working').classList.toggle('visible', pendingAi.has(task.id));
+      row.setAttribute('aria-busy', String(pendingAi.has(task.id)));
       row.querySelector('.task-title').textContent = task.title;
+      row.querySelector('.task-title').title = task.originalText && task.originalText !== task.title ? 'Original: ' + task.originalText : '';
       row.querySelector('.task-check').setAttribute('aria-label', (task.done ? 'Restore: ' : 'Complete: ') + task.title);
       row.querySelector('.task-check').setAttribute('aria-pressed', String(task.done));
       var meta = row.querySelector('.task-meta'); meta.replaceChildren();
@@ -111,6 +137,12 @@
     var wasExpanded = state && state.expanded;
     if (state && state.cloudVersion !== value.cloudVersion) S.tasks = value.tasks;
     state = value;
+    $('ai-toggle').hidden = !state.aiAvailable;
+    $('ai-toggle').setAttribute('aria-pressed', String(state.settings.aiRewriteEnabled !== false));
+    $('ai-toggle').title = state.settings.aiRewriteEnabled !== false ? 'AI wording on · click to keep your exact words' : 'AI wording off · click to simplify new tasks';
+    var folder = (state.settings.projectFolders || {})[state.projectId];
+    $('link-folder').title = folder && folder.path ? folder.path + '\nClick to change project folder' : folder && folder.status === 'ambiguous' ? 'Several folders match · choose project folder' : 'Link project folder';
+    $('refresh-context').hidden = !folder || !folder.path;
     $('panel').classList.toggle('expanded', !!state.expanded);
     $('project-toggle').setAttribute('aria-expanded', String(!!state.expanded));
     $('task-dropdown').inert = !state.expanded;
@@ -157,6 +189,9 @@
     $('task-input').addEventListener('input', inputChanged);
     $('task-input').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) save(e); });
     $('details-toggle').addEventListener('click', function () { details($('task-details').hidden); });
+    $('ai-toggle').addEventListener('click', function () { api.updateSettings({ aiRewriteEnabled: state.settings.aiRewriteEnabled === false }); });
+    $('link-folder').addEventListener('click', function () { closeMenu(); command('link-folder'); });
+    $('refresh-context').addEventListener('click', function () { closeMenu(); command('refresh-context'); });
     $('details-clear').addEventListener('click', function () { $('task-priority').value = 'none'; $('due-date').value = ''; $('due-time').value = ''; });
     $('edit-cancel').addEventListener('click', cancelEdit);
     $('toast-undo').addEventListener('click', function () { var action = undo; undo = null; $('toast').hidden = true; if (action) action(); });

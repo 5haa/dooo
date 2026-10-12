@@ -71,6 +71,12 @@ body.leaving .floating-card { opacity: 0; transform: translateY(-5px) scale(.98)
 .submit-btn:active { transform: scale(.92); }
 .submit-btn:disabled { opacity: .45; }
 .composer-tools { display: flex; gap: 6px; }
+.icon-btn[aria-pressed="true"] { color: var(--ink); background: var(--focus-surface); }
+.composer-status { margin: 5px 4px 2px; font-size: 10px; line-height: 16px; color: var(--muted); }
+.ai-working { display: none; width: 12px; height: 12px; margin-left: 6px; vertical-align: -2px; color: var(--muted); }
+.ai-working.visible { display: inline-block; animation: ai-turn 1s linear infinite; }
+@keyframes ai-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ai-working.visible { animation: none; } }
 .task-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 2px 2px; margin-top: 4px; }
 .task-details label { min-width: 0; font-size: 10px; color: var(--muted); }
 .task-details input, .task-details select { display: block; width: 100%; min-width: 0; height: 30px; border: 0; border-radius: 6px; margin-top: 3px; padding: 3px 6px; background: var(--surface); font-size: 11px; transition: background 150ms ease-out; }

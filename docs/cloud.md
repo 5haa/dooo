@@ -14,6 +14,8 @@ Required API service variables:
 | `DOOO_SYNC_TOKEN` | A cryptographically random secret, at least 32 characters; never commit it |
 | `PORT` | `8080`, matching the generated domain's target port |
 | `NODE_ENV` | `production` |
+| `OPENROUTER_API_KEY` | Server-only OpenRouter key; enables AI task wording |
+| `OPENROUTER_MODEL` | `anthropic/claude-haiku-5.5` (default) |
 
 The database service uses a persistent volume. Startup creates `dooo_workspace` if necessary; it never clears existing data. Projects, tasks, completion state, order, due dates, priorities and scalar metadata are stored in one transactionally versioned JSONB document. Every save performs an atomic revision check. This is a private single-workspace service, not a multi-user account system.
 
@@ -43,6 +45,7 @@ To rotate credentials, change `DOOO_SYNC_TOKEN` on Railway, deploy the variable 
 - `GET /health` is public and returns only service/database health.
 - `GET /api/state` requires `Authorization: Bearer <key>` and returns `{revision, data, updatedAt}`.
 - `PUT /api/state` requires the same key and JSON `{revision, data}`. A stale revision returns HTTP 409 with the latest snapshot; it never overwrites the database.
+- `POST /api/ai/rewrite` requires the same key and `{projectId, text, project: {name, contextText}}`. It combines the desktop's current project memory with stored tasks, calls OpenRouter with a strict JSON response schema, and returns `{title, model}`. It cannot execute files or perform project tasks. Requests are limited to 30 per minute and two concurrent provider calls per workspace. Provider failures return a generic 503; the desktop keeps the original task. The OpenRouter key is never sent to the desktop or included in logs.
 - Missing/incorrect credentials return 401; invalid data returns 400. Requests are size-limited and do not enable cross-origin browser access.
 
 Before manually changing or restoring cloud state, export the authenticated GET response and back up the desktop's `tasks.json`, `settings.json`, and `cloud-state.json`. An old desktop snapshot should not be blindly uploaded over a newer cloud workspace. Keep the previous local backups until the desired data has been confirmed in both places. Protect exports like your task data; they contain private notes.

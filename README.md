@@ -33,6 +33,10 @@ The edge control stays available while cards are minimized. **Arrange projects**
 
 ## Keyboard shortcuts
 
+With cloud AI configured, new tasks save immediately and Claude Haiku simplifies their wording in the background. The small sparkle button toggles this on or off. Editing an existing task always keeps your exact wording. Undo restores the original text; hovering a rewritten title also shows what you typed. If AI is unavailable, the original task stays saved.
+
+When you create a project, Dooo looks for an exactly matching folder on your Desktop (including folders inside `projects`). It saves the folder location and builds a compact memory from README/architecture documents, package manifests and filenames. The project menu's folder icon lets you link or change a folder when there is no unique match; hover it to see the saved path. The refresh icon rebuilds that project's context. Context refreshes on use after five minutes. AI combines this memory with the project's existing tasks; it does not read every source file or execute code.
+
 | Keys | Action |
 | --- | --- |
 | Arrows on the plus | Move it by 10 px, or 40 px with Shift |
@@ -68,6 +72,8 @@ Uninstall through Windows Settings > Apps. Uninstalling removes the startup entr
 | `npm run start:server` | Run the PostgreSQL-backed cloud sync API |
 | `npm run test:cloud` | Test merge rules, authentication, offline replay and PostgreSQL sync |
 | `npm run test:cloud:e2e` | Test Electron → API → PostgreSQL and incoming cloud updates |
+| `npm run test:ai` | Check folder discovery, context filtering, AI validation and authenticated requests |
+| `npm run test:ai:e2e` | Check real Electron rewriting, immediate saving, undo, offline fallback and folder linking |
 | `npm run pack` | Build the unpacked app in `dist\win-unpacked\` |
 | `npm run dist` | Build the Windows installer |
 
@@ -92,6 +98,8 @@ The server checks a revision before saving. Concurrent edits to different fields
 See [Cloud deployment and connection](docs/cloud.md) for Railway setup, connecting another computer, recovery, and integration-test commands. This deploys the cloud backend; the floating-window interface remains a native Windows app.
 
 Set `DOOO_USER_DATA_DIR=<folder>` for isolated data and `DOOO_DISABLE_AUTOSTART=1` to leave startup registration alone. Development runs already leave startup registration alone.
+
+Set `DOOO_PROJECT_ROOT=<folder>` to use an isolated desktop for discovery tests, or `DOOO_DISABLE_PROJECT_DISCOVERY=1` to disable filesystem discovery. Folder locations and sanitized project memory sync to PostgreSQL; machine-local folder mappings remain in settings. A path received from the cloud is never automatically opened on another computer. Documentation context is sent to OpenRouter only when rewriting a task. Environment/credential files, dependencies, generated artifacts, repository instructions and symlinks are excluded. Recognizable credential strings in documentation are redacted; keep private credentials in environment files rather than project documentation.
 
 ## Project layout
 

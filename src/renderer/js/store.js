@@ -61,7 +61,7 @@
         projectIds.add(p.id);
         return true;
       }).map(function (p) {
-        return { id: p.id, name: p.id === DEFAULT_PROJECT && p.name === 'Personal' ? 'Tasks' : cleanTitle(p.name).slice(0, 48) };
+        return Object.assign({}, p, { id: p.id, name: p.id === DEFAULT_PROJECT && p.name === 'Personal' ? 'Tasks' : cleanTitle(p.name).slice(0, 48) });
       });
       if (!projectIds.has(DEFAULT_PROJECT)) {
         this.projects.unshift({ id: DEFAULT_PROJECT, name: 'Tasks' });
@@ -156,6 +156,7 @@
         createdAt: Date.now(),
         completedAt: null
       };
+      if (typeof fields.originalText === 'string') task.originalText = cleanTitle(fields.originalText);
       this.tasks.unshift(task);
       this.persist();
       var self = this;

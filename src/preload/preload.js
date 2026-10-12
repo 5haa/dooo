@@ -20,6 +20,7 @@ const CH = {
 };
 
 contextBridge.exposeInMainWorld('dooo', {
+  rewriteTask: text => ipcRenderer.invoke('dooo:rewrite-task', text),
   desktop: (action, value) => ipcRenderer.invoke('dooo:desktop', action, value),
   onDesktopChanged: callback => {
     const listener = (_event, value) => callback(value);

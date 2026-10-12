@@ -11,7 +11,7 @@ const read = name => JSON.parse(fs.readFileSync(path.join(dataDir, name), 'utf8'
 async function until(fn, label) { const end = Date.now()+7000; while(Date.now()<end) { const value=await fn(); if(value) return value; await pause(60); } throw new Error(label); }
 function track(page) { page.setDefaultTimeout(7000); page.on('pageerror',e=>errors.push(e.message)); page.on('console',m=>{if(m.type()==='error')errors.push(m.text());}); }
 async function launch() {
-  const env = {...process.env, DOOO_USER_DATA_DIR:dataDir, DOOO_DISABLE_AUTOSTART:'1'}; delete env.ELECTRON_RUN_AS_NODE;
+  const env = {...process.env, DOOO_USER_DATA_DIR:dataDir, DOOO_DISABLE_AUTOSTART:'1', DOOO_DISABLE_PROJECT_DISCOVERY:'1'}; delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({args:['.'],cwd:ROOT,env});
   app.on('window',track);
   await until(()=>app.windows().length>=2,'project and edge control windows not created');

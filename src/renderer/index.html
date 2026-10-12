@@ -46,8 +46,10 @@
           </div>
           <div class="composer-tools">
             <button class="icon-btn" id="details-toggle" type="button" aria-label="Task details" title="Task details" aria-expanded="false" aria-controls="task-details"><i data-icon="sliders"></i></button>
+            <button class="icon-btn" id="ai-toggle" type="button" aria-label="Simplify with AI" title="Simplify with AI" aria-pressed="true" hidden><i data-icon="sparkles"></i></button>
             <button class="icon-btn" id="edit-cancel" type="button" aria-label="Cancel editing" title="Cancel editing" hidden><i data-icon="x"></i></button>
           </div>
+          <p class="composer-status" id="composer-status" role="status" hidden></p>
           <div class="task-details" id="task-details" hidden>
             <label>Priority<select id="task-priority"><option value="none">None</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
             <label>Date<input type="date" id="due-date" aria-label="Due date"></label>
@@ -57,6 +59,8 @@
         </form>
       </section>
       <div class="task-menu" id="task-menu" role="menu" hidden>
+        <button role="menuitem" id="link-folder" aria-label="Link project folder" title="Link project folder"><i data-icon="folder"></i></button>
+        <button role="menuitem" id="refresh-context" aria-label="Refresh project context" title="Refresh project context"><i data-icon="rotate-ccw"></i></button>
         <button role="menuitem" id="clear-completed" aria-label="Clear completed tasks" title="Clear completed tasks"><i data-icon="list-checks"></i></button>
         <button role="menuitem" id="menu-minimize" aria-label="Minimize project" title="Minimize project"><i data-icon="minus"></i></button>
       </div>

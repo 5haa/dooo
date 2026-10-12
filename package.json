@@ -15,7 +15,9 @@
     "pack": "electron-builder --win --dir",
     "dist": "electron-builder --win nsis",
     "test:e2e": "node tests/e2e.js",
-    "test:unit": "node tests/unit.js"
+    "test:unit": "node tests/unit.js",
+    "test:ai": "node --test tests/ai.test.js",
+    "test:ai:e2e": "node tests/ai-electron.js"
   },
   "devDependencies": {
     "electron": "^44.7.0",

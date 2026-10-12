@@ -25,7 +25,7 @@ async function until(fn, message) {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dooo-cloud-electron-'));
   const errors = []; let app;
   async function launch() {
-    const env = { ...process.env, DOOO_USER_DATA_DIR: dataDir, DOOO_DISABLE_AUTOSTART: '1', DOOO_SYNC_URL: url, DOOO_SYNC_TOKEN: token };
+    const env = { ...process.env, DOOO_USER_DATA_DIR: dataDir, DOOO_DISABLE_AUTOSTART: '1', DOOO_DISABLE_PROJECT_DISCOVERY: '1', DOOO_SYNC_URL: url, DOOO_SYNC_TOKEN: token };
     delete env.ELECTRON_RUN_AS_NODE;
     app = await _electron.launch({ args: ['.'], cwd: path.resolve(__dirname, '..'), env });
     app.on('window', page => page.on('pageerror', e => errors.push(e.message)));

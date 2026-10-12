@@ -3,8 +3,9 @@ const http = require('node:http');
 const { createHash, timingSafeEqual } = require('node:crypto');
 const { Pool } = require('pg');
 const { EMPTY, validateState } = require('../shared/cloud-state');
+const { rewriteTask, validInput, MODEL } = require('./task-ai');
 
-async function createServer({ databaseUrl, token, pool: suppliedPool }) {
+async function createServer({ databaseUrl, token, pool: suppliedPool, openrouterKey, model = MODEL, aiFetch }) {
   if (!databaseUrl && !suppliedPool) throw new Error('DATABASE_URL is required');
   if (typeof token !== 'string' || token.length < 32) throw new Error('DOOO_SYNC_TOKEN must have at least 32 characters');
   const pool = suppliedPool || new Pool({ connectionString: databaseUrl, max: 5, connectionTimeoutMillis: 5000, statement_timeout: 5000 });
@@ -17,6 +18,7 @@ async function createServer({ databaseUrl, token, pool: suppliedPool }) {
   const digest = value => createHash('sha256').update(value).digest();
   const expected = digest('Bearer ' + token);
   const attempts = new Map();
+  let aiActive = 0, aiRequests = [];
   function reply(res, status, body) {
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'" });
@@ -39,6 +41,31 @@ async function createServer({ databaseUrl, token, pool: suppliedPool }) {
         const previous = attempts.get(key), entry = previous && previous.until > now ? previous : { count: 0, until: now + 60000 };
         entry.count++; attempts.set(key, entry);
         reply(res, entry.count > 60 ? 429 : 401, { error: 'Authentication required' }); return;
+      }
+      if (url.pathname === '/api/ai/rewrite') {
+        if (req.method !== 'POST') { reply(res, 405, { error: 'Method not allowed' }); return; }
+        if (!openrouterKey) { reply(res, 503, { error: 'AI unavailable' }); return; }
+        if (!(req.headers['content-type'] || '').startsWith('application/json')) { reply(res, 415, { error: 'Expected JSON' }); return; }
+        aiRequests = aiRequests.filter(time => Date.now() - time < 60000);
+        if (aiActive >= 2 || aiRequests.length >= 30) { reply(res, 429, { error: 'Try again shortly' }); return; }
+        const chunks = []; let size = 0;
+        for await (const chunk of req) {
+          size += chunk.length;
+          if (size > 96000) { reply(res, 413, { error: 'Request is too large' }); return; }
+          chunks.push(chunk);
+        }
+        let input;
+        try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch {}
+        if (!validInput(input)) { reply(res, 400, { error: 'Invalid task' }); return; }
+        // Recheck after reading the body so simultaneous requests cannot bypass the cap.
+        if (aiActive >= 2 || aiRequests.length >= 30) { reply(res, 429, { error: 'Try again shortly' }); return; }
+        aiActive++; aiRequests.push(Date.now());
+        try {
+          const state = await readState();
+          reply(res, 200, await rewriteTask({ input, workspace: state.data, key: openrouterKey, model, fetchImpl: aiFetch }));
+        } catch { reply(res, 503, { error: 'AI unavailable' }); }
+        finally { aiActive--; }
+        return;
       }
       if (url.pathname !== '/api/state') { reply(res, 404, { error: 'Not found' }); return; }
       if (req.method === 'GET') { reply(res, 200, await readState()); return; }
@@ -71,7 +98,8 @@ async function createServer({ databaseUrl, token, pool: suppliedPool }) {
   return { server, pool, close: async () => { await new Promise(resolve => server.close(resolve)); await pool.end(); } };
 }
 if (require.main === module) {
-  createServer({ databaseUrl: process.env.DATABASE_URL, token: process.env.DOOO_SYNC_TOKEN }).then(instance => {
+  createServer({ databaseUrl: process.env.DATABASE_URL, token: process.env.DOOO_SYNC_TOKEN,
+    openrouterKey: process.env.OPENROUTER_API_KEY, model: process.env.OPENROUTER_MODEL || MODEL }).then(instance => {
     instance.server.listen(Number(process.env.PORT || 8080), '0.0.0.0', () => console.log('[dooo-api] Listening'));
     for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => instance.close().then(() => process.exit(0)));
   }).catch(() => { console.error('[dooo-api] Startup failed; check database and sync token configuration'); process.exitCode = 1; });

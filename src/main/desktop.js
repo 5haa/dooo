@@ -1,6 +1,6 @@
 'use strict';
 const path = require('path');
-const { BrowserWindow, ipcMain, screen, app, systemPreferences } = require('electron');
+const { BrowserWindow, ipcMain, screen, app, systemPreferences, dialog } = require('electron');
 const { setLoginItem } = require('./login-item');
 const { normalizeProjects, mergeProjectTasks, projectName, randomUUID } = require('./project-data');
 const ROOT = path.join(__dirname, '..');
@@ -126,6 +126,7 @@ class Desktop {
   snapshot(entry) {
     return {
       cloudVersion: this.cloudVersion,
+      aiAvailable: !!(this.options.aiAvailable && this.options.aiAvailable()),
       kind: entry.projectId ? 'project' : 'dock', projectId: entry.projectId, expanded: !!entry.expanded, dockOpen: this.dockOpen,
       dockLayout: entry.projectId ? undefined : this.dockGeometry(),
       color: COLORS[Math.max(0, this.projects.findIndex(p => p.id === entry.projectId)) % COLORS.length],
@@ -230,7 +231,7 @@ class Desktop {
   }
   updateSettings(patch) {
     const allowed = {};
-    for (const key of ['alwaysOnTop', 'launchAtLogin']) if (typeof patch[key] === 'boolean') allowed[key] = patch[key];
+    for (const key of ['alwaysOnTop', 'launchAtLogin', 'aiRewriteEnabled']) if (typeof patch[key] === 'boolean') allowed[key] = patch[key];
     const { settings, keys } = this.store.updateSettings(allowed);
     if (keys.includes('alwaysOnTop')) this.entries.forEach(e => e.win.setAlwaysOnTop(settings.alwaysOnTop, 'floating'));
     if (keys.includes('launchAtLogin')) setLoginItem(app, settings.launchAtLogin);
@@ -238,6 +239,14 @@ class Desktop {
     return settings;
   }
   command(entry, action, value) {
+    if (action === 'link-folder' && entry.projectId) {
+      return dialog.showOpenDialog(entry.win, { title: 'Link project folder', properties: ['openDirectory'],
+        defaultPath: (this.store.getSettings().projectFolders || {})[entry.projectId]?.path || app.getPath('desktop')
+      }).then(async result => {
+        if (!result.canceled && result.filePaths.length) await this.options.linkFolder(entry.projectId, result.filePaths[0]);
+      });
+    }
+    if (action === 'refresh-context' && entry.projectId) { this.options.discoverProject(entry.projectId); return; }
     if (action === 'move-dock' && !entry.projectId) { this.moveDock(value); return; }
     if (action === 'dock-height' && !entry.projectId && Number.isFinite(value)) {
       this.dockHeight = clamp(value, 140, 360);
@@ -260,6 +269,7 @@ class Desktop {
       if (this.projects.some(p => p.id !== entry.projectId && p.name.toLocaleLowerCase() === name.toLocaleLowerCase())) throw new Error('That project name is already used.');
       this.projects = this.projects.map(p => p.id === entry.projectId ? { ...p, name } : p);
       this.store.updateSettings({ projects: this.projects }); entry.win.setTitle(name + ' — Dooo'); this.broadcast();
+      if (this.options.discoverProject) this.options.discoverProject(entry.projectId);
     } else if (action === 'create') {
       const name = projectName(value);
       if (!name) throw new Error('Enter a project name.');
@@ -268,7 +278,7 @@ class Desktop {
       this.store.updateSettings({ projects: this.projects });
       const created = this.createProjectWindow(project, this.projects.length - 1);
       created.win.once('ready-to-show', () => { this.show(created); this.expand(created, true); created.win.focus(); });
-      this.broadcast(); return project;
+      this.broadcast(); if (this.options.discoverProject) this.options.discoverProject(project.id); return project;
     }
   }
   sender(event) {
@@ -282,6 +292,7 @@ class Desktop {
       try { fn(this.sender(event), ...args); } catch (err) { console.warn('[dooo] ' + channel + ':', err.message); }
     });
     handle('load-state', entry => this.snapshot(entry));
+    handle('rewrite-task', (entry, text) => entry.projectId && this.options.rewriteTask ? this.options.rewriteTask(entry.projectId, text) : { error: 'unavailable' });
     handle('desktop', (entry, action, value) => this.command(entry, action, value));
     handle('save-tasks', (entry, tasks) => {
       if (!entry.projectId) throw new Error('Select a project first');
