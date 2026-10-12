@@ -6,10 +6,3 @@
 !src/server/**
 !src/shared/
 !src/shared/**
-!apps/
-!apps/**
-!packages/
-!packages/control/
-!packages/control/**
-!packages/ui-tars/
-!packages/ui-tars/package.json

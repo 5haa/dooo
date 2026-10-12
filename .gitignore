@@ -10,6 +10,5 @@ Thumbs.db
 !.env.example
 cloud.json
 agent.json
-worker.json
 cloud-state.json*
 .railway/

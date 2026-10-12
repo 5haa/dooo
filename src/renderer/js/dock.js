@@ -97,10 +97,6 @@
       $('dock-error').hidden = true; await api.desktop('dock', false);
     } catch (err) { showError(err); }
   });
-  $('pair-phone').addEventListener('click', async function () {
-    var button = $('pair-phone'); button.disabled = true; button.setAttribute('aria-busy', 'true');
-    try { await command('pair-phone'); } finally { button.disabled = false; button.removeAttribute('aria-busy'); }
-  });
   ['always-on-top', 'launch-at-login'].forEach(function (id, i) {
     $(id).addEventListener('click', function () { var patch = {}; patch[i ? 'launchAtLogin' : 'alwaysOnTop'] = $(id).getAttribute('aria-pressed') !== 'true'; api.updateSettings(patch).catch(showError); });
   });

@@ -29,8 +29,16 @@ async function until(fn, message) {
     delete env.ELECTRON_RUN_AS_NODE;
     app = await _electron.launch({ args: ['.'], cwd: path.resolve(__dirname, '..'), env });
     app.on('window', page => page.on('pageerror', e => errors.push(e.message)));
-    await until(() => app.windows().some(p => p.url().endsWith('index.html')), 'Project window missing');
-    const page = app.windows().find(p => p.url().endsWith('index.html'));
+    // Restored project windows can finish loading in either order.
+    let page;
+    await until(async () => {
+      for (const candidate of app.windows().filter(p => p.url().endsWith('index.html'))) {
+        if (await candidate.evaluate(() => document.getElementById('project-name')?.textContent) === 'Tasks') {
+          page = candidate; return true;
+        }
+      }
+      return false;
+    }, 'Original project window missing');
     await page.waitForFunction(() => document.documentElement.dataset.ready === 'true');
     return page;
   }
