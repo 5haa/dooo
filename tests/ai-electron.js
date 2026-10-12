@@ -14,7 +14,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.url === '/api/ai/rewrite') {
     const input = JSON.parse(raw); requests.push({ input, res });
-    if (fail) { res.statusCode = 503; res.end('{"error":"unavailable"}'); }
+    if (fail) { res.statusCode = 503; res.end('{"error":"unavailable","code":"timeout"}'); }
     return;
   }
   if (req.method === 'PUT') {
@@ -61,6 +61,8 @@ function answer(index, title) { requests[index].res.end(JSON.stringify({ title, 
     await page.locator('#ai-toggle').click(); fail = true;
     await add(page, 'offline original'); await page.locator('#composer-status').waitFor({ state: 'visible' });
     assert.equal(await page.locator('.task-title').first().textContent(), 'offline original');
+    assert.match(await page.locator('#composer-status').textContent(), /AI took too long · saved your wording/);
+    assert.equal(requests.filter(request => request.input.text === 'offline original').length, 2, 'Transient failures retry once without duplicating the saved task');
     await page.evaluate(() => window.dooo.desktop('create', 'Fresh'));
     await until(() => read('settings.json').projects.some(p => p.name === 'Fresh' && p.folderPath), 'New project was not linked automatically');
     await until(() => remote.data.projects.some(p => p.name === 'Fresh' && p.contextText), 'Folder metadata did not reach cloud API');

@@ -68,8 +68,60 @@ test('desktop queues requests, binds project context, authenticates and falls ba
     await new Promise(resolve => setTimeout(resolve, 10)); active--; return { ok: true, json: async () => ({ title: 'Clean title' }) };
   });
   await Promise.all([writer.rewrite('p', 'first'), writer.rewrite('p', 'second')]); assert.equal(maximum, 1);
-  writer.fetch = async () => { throw new Error('offline'); }; assert.deepEqual(await writer.rewrite('p', 'keep this'), { error: 'unavailable' });
+  writer.retryDelay = 0;
+  writer.fetch = async () => { throw new Error('offline'); }; assert.deepEqual(await writer.rewrite('p', 'keep this'), { error: 'offline' });
 });
+
+test('AI failures retain a safe reason without exposing provider responses', async () => {
+  const input = { projectId: 'p', text: 'rough task' }, workspace = { projects: [{ id: 'p', name: 'Example' }], tasks: [] };
+  for (const [status, code] of [[401, 'provider_auth'], [402, 'credits'], [429, 'rate_limited'], [503, 'unavailable'], [504, 'timeout'], [400, 'invalid_request']]) {
+    await assert.rejects(rewriteTask({ input, workspace, key: 'test-only', fetchImpl: async () => ({ ok: false, status }) }), error => error.code === code && error.providerStatus === status);
+  }
+  await assert.rejects(rewriteTask({ input, workspace, key: 'test-only', fetchImpl: async () => { throw new DOMException('Secret provider details', 'TimeoutError'); } }), error => error.code === 'timeout' && !error.message.includes('Secret'));
+});
+
+test('desktop retries transient AI failures once and does not retry credentials or billing errors', async () => {
+  const store = { getSettings: () => ({ projects: [{ id: 'p', name: 'Example' }] }) };
+  for (const first of ['offline', 'timeout', 'rate_limited', 'unavailable']) {
+    let calls = 0;
+    const writer = new TaskWriter(store, null, { url: 'https://example.com', token: 'test-only' }, async () => {
+      if (++calls === 1) {
+        if (first === 'offline') throw new Error('offline');
+        if (first === 'timeout') throw new DOMException('timed out', 'TimeoutError');
+        return { ok: false, status: 503, json: async () => ({ code: first }) };
+      }
+      return { ok: true, json: async () => ({ title: 'Recovered title' }) };
+    }, { retryDelay: 0 });
+    assert.equal((await writer.rewrite('p', 'rough task')).title, 'Recovered title'); assert.equal(calls, 2);
+  }
+  for (const code of ['credits', 'provider_auth', 'not_configured', 'invalid_request']) {
+    let calls = 0;
+    const writer = new TaskWriter(store, null, { url: 'https://example.com', token: 'test-only' }, async () => {
+      calls++; return { ok: false, status: 503, json: async () => ({ code }) };
+    }, { retryDelay: 0 });
+    assert.deepEqual(await writer.rewrite('p', 'rough task'), { error: code }); assert.equal(calls, 1);
+  }
+  let calls = 0;
+  const writer = new TaskWriter(store, null, { url: 'https://example.com', token: 'test-only' }, async () => {
+    calls++; return { ok: false, status: 502, json: async () => { throw new SyntaxError('not JSON'); } };
+  }, { retryDelay: 0 });
+  assert.deepEqual(await writer.rewrite('p', 'keep wording'), { error: 'unavailable' }); assert.equal(calls, 2);
+});
+test('AI endpoint returns the actionable failure reason without provider content', async t => {
+  const pool = { on() {}, end: async () => {}, query: async sql => ({ rows: sql.startsWith('SELECT revision') ? [{ revision: 1, data: { projects: [], tasks: [] } }] : [] }) };
+  const token = 'test-token-'.repeat(5), warnings = t.mock.method(console, 'warn', () => {});
+  const instance = await createServer({ pool, token, openrouterKey: 'test-only', aiFetch: async () => ({ ok: false, status: 402 }) });
+  await new Promise(resolve => instance.server.listen(0, '127.0.0.1', resolve)); t.after(() => instance.close());
+  const response = await fetch('http://127.0.0.1:' + instance.server.address().port + '/api/ai/rewrite', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectId: 'new', text: 'Private draft', project: { name: 'New', contextText: '' } })
+  });
+  assert.equal(response.status, 503); assert.deepEqual(await response.json(), { error: 'AI unavailable', code: 'credits' });
+  const log = JSON.parse(warnings.mock.calls[0].arguments[1]);
+  assert.equal(log.code, 'credits'); assert.equal(log.providerStatus, 402);
+  assert.deepEqual(Object.keys(log).sort(), ['code', 'elapsedMs', 'providerStatus']);
+});
+
 test('AI endpoint authenticates before provider requests and limits input and concurrent requests', async t => {
   let requests = 0, release; const paused = new Promise(resolve => { release = resolve; });
   const pool = { on() {}, end: async () => {}, query: async sql => ({ rows: sql.startsWith('SELECT revision') ? [{ revision: 1, data: { projects: [], tasks: [] } }] : [] }) };

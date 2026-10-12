@@ -66,10 +66,14 @@
     pendingAi.delete(id);
     var task = S.get(id), edited = editedDuringAi.has(id); editedDuringAi.delete(id);
     if (task && !edited && task.title === original && result.title) {
+      $('composer-status').hidden = true;
       S.update(id, { title: result.title });
       if (result.title !== original) notify('Task wording simplified', function () { S.update(id, { title: original }); render(); });
     } else if (task && result.error) {
-      $('composer-status').textContent = 'AI unavailable · saved your wording'; $('composer-status').hidden = false;
+      var reasons = { timeout: 'AI took too long', offline: 'AI could not connect', rate_limited: 'AI is busy',
+        credits: 'AI credits need topping up', provider_auth: 'AI key needs attention', connection_auth: 'Cloud connection needs attention',
+        not_configured: 'AI is not configured', invalid_request: 'AI request needs attention', invalid_response: 'AI returned an unusable response' };
+      $('composer-status').textContent = (reasons[result.error] || 'AI temporarily unavailable') + ' · saved your wording'; $('composer-status').hidden = false;
     }
     render();
   }

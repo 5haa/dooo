@@ -52,6 +52,8 @@ To rotate credentials, change `DOOO_SYNC_TOKEN` on Railway, deploy the variable 
 
 Before manually changing or restoring cloud state, export the authenticated GET response and back up the desktop's `tasks.json`, `settings.json`, and `cloud-state.json`. An old desktop snapshot should not be blindly uploaded over a newer cloud workspace. Keep the previous local backups until the desired data has been confirmed in both places. Protect exports like your task data; they contain private notes.
 
+AI failures return a safe reason code and log only that code, provider HTTP status and duration. The desktop retries temporary connection, timeout, busy and server failures once, preserves the original task, and shows a specific reason if the retry fails. Credentials, prompts and provider response bodies are never logged.
+
 ## Tests
 
 `npm run test:cloud` runs pure merge/configuration checks. Set `DOOO_TEST_DATABASE_URL` to a **disposable local PostgreSQL database** to include live API and two-client tests. The integration tests replace the test database's workspace row, reject non-loopback database hosts, and use temporary desktop directories.

@@ -3,7 +3,7 @@ const http = require('node:http');
 const { createHash, timingSafeEqual } = require('node:crypto');
 const { Pool } = require('pg');
 const { EMPTY, validateState } = require('../shared/cloud-state');
-const { rewriteTask, validInput, MODEL } = require('./task-ai');
+const { rewriteTask, validInput, MODEL, AIError } = require('./task-ai');
 const { handleAgent, AgentError } = require('./agent-api');
 
 async function createServer({ databaseUrl, token, pool: suppliedPool, openrouterKey, model = MODEL, aiFetch, agentToken }) {
@@ -59,10 +59,10 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
       }
       if (url.pathname === '/api/ai/rewrite') {
         if (req.method !== 'POST') { reply(res, 405, { error: 'Method not allowed' }); return; }
-        if (!openrouterKey) { reply(res, 503, { error: 'AI unavailable' }); return; }
+        if (!openrouterKey) { reply(res, 503, { error: 'AI unavailable', code: 'not_configured' }); return; }
         if (!(req.headers['content-type'] || '').startsWith('application/json')) { reply(res, 415, { error: 'Expected JSON' }); return; }
         aiRequests = aiRequests.filter(time => Date.now() - time < 60000);
-        if (aiActive >= 2 || aiRequests.length >= 30) { reply(res, 429, { error: 'Try again shortly' }); return; }
+        if (aiActive >= 2 || aiRequests.length >= 30) { reply(res, 429, { error: 'Try again shortly', code: 'rate_limited' }); return; }
         const chunks = []; let size = 0;
         for await (const chunk of req) {
           size += chunk.length;
@@ -73,12 +73,17 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
         try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch {}
         if (!validInput(input)) { reply(res, 400, { error: 'Invalid task' }); return; }
         // Recheck after reading the body so simultaneous requests cannot bypass the cap.
-        if (aiActive >= 2 || aiRequests.length >= 30) { reply(res, 429, { error: 'Try again shortly' }); return; }
+        if (aiActive >= 2 || aiRequests.length >= 30) { reply(res, 429, { error: 'Try again shortly', code: 'rate_limited' }); return; }
         aiActive++; aiRequests.push(Date.now());
+        const started = Date.now();
         try {
           const state = await readState();
           reply(res, 200, await rewriteTask({ input, workspace: state.data, key: openrouterKey, model, fetchImpl: aiFetch }));
-        } catch { reply(res, 503, { error: 'AI unavailable' }); }
+        } catch (error) {
+          const code = error instanceof AIError ? error.code : 'unavailable';
+          console.warn('[dooo-ai]', JSON.stringify({ code, providerStatus: error instanceof AIError ? error.providerStatus : undefined, elapsedMs: Date.now() - started }));
+          reply(res, 503, { error: 'AI unavailable', code });
+        }
         finally { aiActive--; }
         return;
       }
