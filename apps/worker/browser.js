@@ -5,9 +5,13 @@ const { validateAction } = require('./policy');
 const PARTITION = 'persist:dooo-automation';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const webURL = value => { try { const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) && !u.username && !u.password; } catch { return false; } };
+function addressPage(value = '') {
+  const initial = JSON.stringify(value).replace(/</g, '\\u003c');
+  return 'data:text/html;charset=utf-8,' + encodeURIComponent(`<!doctype html><html><head><meta name="viewport" content="width=device-width"><title>Dooo browser</title></head><body style="background:#f4f4f4;color:#242424;font:20px Segoe UI;margin:90px"><h1>Dooo browser</h1><form><label for="address">Website address or search</label><div style="display:flex;gap:12px;margin-top:16px"><input id="address" aria-label="Website address or search" placeholder="Type a website address" autofocus style="font:inherit;flex:1;padding:18px;border:0;border-radius:12px;background:white"><button style="font:inherit;padding:18px 24px;border:0;border-radius:12px;background:#242424;color:white">Open</button></div></form><p style="color:#666;font-size:16px">Ctrl + L opens this address field. Your Windows mouse stays free.</p><script>const field=document.querySelector('input');field.value=${initial};field.focus();field.select();document.querySelector('form').onsubmit=e=>{e.preventDefault();const value=field.value.trim();if(!value)return;const url=/^https?:\\/\\//i.test(value)?value:/^[^\\s/]+\\.[^\\s]+/.test(value)?'https://'+value:'https://www.google.com/search?q='+encodeURIComponent(value);location.href=url;};</script></body></html>`);
+}
 class BrowserOperator {
   static MANUAL = { ACTION_SPACES: [
-    "navigate(content='https://example.com') # Open a URL. This browser has no address bar; use navigate, not Ctrl+L.",
+    "navigate(content='https://example.com') # Open a URL. Alternatively Ctrl+L opens the address field; type a URL, then Enter.",
     'navigate_back()', "click(start_box='[x1, y1, x2, y2]')", "left_double(start_box='[x1, y1, x2, y2]')",
     "right_single(start_box='[x1, y1, x2, y2]')", "drag(start_box='[x1, y1, x2, y2]', end_box='[x3, y3, x4, y4]')",
     "type(content='') # A trailing \\n submits with Enter.", "hotkey(key='')", "scroll(start_box='[x1, y1, x2, y2]', direction='down or up')",
@@ -18,7 +22,7 @@ class BrowserOperator {
     if (this.initializing) return this.initializing;
     if (this.window && !this.window.isDestroyed()) return;
     this.initializing = this.initialize();
-    try { await this.initializing; } catch (error) { this.dispose(); throw error; } finally { this.initializing = null; }
+    try { await this.bounded(this.initializing, 'Browser startup timed out'); } catch (error) { this.dispose(); throw error; } finally { this.initializing = null; }
   }
   async initialize() {
     const profile = session.fromPartition(PARTITION);
@@ -28,14 +32,14 @@ class BrowserOperator {
     this.downloadHandler ||= event => { event.preventDefault(); this.problem = 'Downloads need your help. Open this site yourself to save a file.'; };
     profile.removeListener('will-download', this.downloadHandler); profile.on('will-download', this.downloadHandler);
     const win = this.window = new BrowserWindow({ title: 'Dooo · Automation browser', width: 1280, height: 800, useContentSize: true, show: false,
-      webPreferences: { partition: PARTITION, sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false, backgroundThrottling: false } });
+      webPreferences: { partition: PARTITION, sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false, offscreen: true, backgroundThrottling: false } });
     win.setMenu(null); win.on('close', event => { event.preventDefault(); win.hide(); });
     const wc = win.webContents;
     wc.setAudioMuted(true);
     for (const event of ['will-navigate', 'will-frame-navigate', 'will-redirect']) wc.on(event, details => { if (!webURL(details.url)) details.preventDefault(); });
     wc.on('will-attach-webview', event => event.preventDefault());
     wc.setWindowOpenHandler(({ url }) => { if (webURL(url)) void wc.loadURL(url).catch(() => {}); return { action: 'deny' }; });
-    await wc.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent('<!doctype html><html><body style="background:#f4f4f4;color:#242424;font:20px Segoe UI;margin:90px"><h1>Dooo browser</h1><p>A separate browser for your requests.</p><p>Ask Dooo to open a website to get started.</p></body></html>'));
+    await wc.loadURL(addressPage());
     wc.debugger.attach('1.3');
     wc.debugger.on('message', (_event, method, params) => {
       if (method === 'Page.fileChooserOpened') this.problem = 'Choosing local files needs your help in Desktop mode.';
@@ -48,8 +52,9 @@ class BrowserOperator {
     await this.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
   }
   async send(method, params = {}) { return this.window.webContents.debugger.sendCommand(method, params); }
+  async bounded(promise, message) { let timer; try { return await Promise.race([promise, new Promise((_,reject) => { timer=setTimeout(()=>reject(new Error(message)),12000); })]); } finally { clearTimeout(timer); } }
   check() { if (this.problem) { const message = this.problem; this.problem = null; throw new Error(message); } }
-  async screenshot() { await this.ready(); this.check(); const shot = await this.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }); return { base64: shot.data, scaleFactor: 1 }; }
+  async screenshot() { await this.ready(); this.check(); const shot = await this.bounded(this.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }), 'Browser screenshot timed out. Start the request again.'); return { base64: shot.data, scaleFactor: 1 }; }
   async context(action) {
     await this.ready(); const box = action.args.start_box ? JSON.parse(action.args.start_box) : null;
     const point = box ? { x: (box[0] + (box[2] ?? box[0])) / 2 * 1280, y: (box[1] + (box[3] ?? box[1])) / 2 * 800 } : null;
@@ -69,6 +74,7 @@ class BrowserOperator {
     const tokens = value.toLowerCase().trim().split(/[+\s]+/), name = tokens.pop();
     const modifiers = (tokens.includes('alt') ? 1 : 0) | (tokens.some(x => ['ctrl','control'].includes(x)) ? 2 : 0) | (tokens.includes('shift') ? 8 : 0);
     if (tokens.some(x => !['alt','ctrl','control','shift'].includes(x))) throw new Error('This shortcut is unavailable in the background browser');
+    if ((modifiers & 2) && name === 'l') { const url=this.window.webContents.getURL();await this.window.loadURL(addressPage(webURL(url)?url:''));return; }
     if (modifiers & 2 && ['c','x','v'].includes(name)) {
       if (name === 'v') { await this.send('Input.insertText', { text: this.clipboard }); return; }
       this.clipboard = await this.window.webContents.executeJavaScript(`(() => {const e=document.activeElement;return e?.type==='password'?'':typeof e?.selectionStart==='number'?e.value.slice(e.selectionStart,e.selectionEnd):String(getSelection());})()`);
@@ -76,7 +82,7 @@ class BrowserOperator {
     }
     const keys = { enter:['Enter',13], return:['Enter',13], tab:['Tab',9], escape:['Escape',27], esc:['Escape',27], backspace:['Backspace',8], delete:['Delete',46], del:['Delete',46], space:[' ',32], up:['ArrowUp',38], down:['ArrowDown',40], left:['ArrowLeft',37], right:['ArrowRight',39], arrowup:['ArrowUp',38], arrowdown:['ArrowDown',40], arrowleft:['ArrowLeft',37], arrowright:['ArrowRight',39], home:['Home',36], end:['End',35], pageup:['PageUp',33], pagedown:['PageDown',34] };
     const pair = keys[name] || (/^[a-z0-9]$/.test(name) ? [name, name.toUpperCase().charCodeAt(0)] : null);
-    if (!pair || (modifiers & 2 && ['l','n','t','w'].includes(name))) throw new Error('Use navigate() for browser navigation; this shortcut is unavailable');
+    if (!pair || (modifiers & 2 && ['n','t','w'].includes(name))) throw new Error('Use Ctrl+L to open an address; this shortcut is unavailable');
     const event = { key: pair[0], windowsVirtualKeyCode: pair[1], modifiers };
     await this.send('Input.dispatchKeyEvent', { ...event, type: 'keyDown', ...(!modifiers && pair[0] === 'Enter' ? { text: '\r', unmodifiedText: '\r' } : {}) });
     await this.send('Input.dispatchKeyEvent', { ...event, type: 'keyUp' });
@@ -84,7 +90,7 @@ class BrowserOperator {
   async execute(params) {
     await this.ready(); this.check(); const action = validateAction(params.parsedPrediction), { type, args } = action;
     const point = key => { const b = JSON.parse(args[key]); return { x: Math.min(1279, Math.round((b[0] + (b[2] ?? b[0])) / 2 * 1280)), y: Math.min(799, Math.round((b[1] + (b[3] ?? b[1])) / 2 * 800)) }; };
-    if (type === 'navigate') { await this.window.webContents.loadURL(args.content); }
+    if (type === 'navigate') { await this.bounded(this.window.webContents.loadURL(args.content), 'This website took too long to open'); }
     else if (type === 'navigate_back') { if (this.window.webContents.navigationHistory.canGoBack()) this.window.webContents.navigationHistory.goBack(); }
     else if (type === 'type') {
       const submit = args.content.endsWith('\n'), content = submit ? args.content.slice(0, -1) : args.content;
@@ -109,8 +115,29 @@ class BrowserOperator {
     }
     await sleep(150); this.check(); return {};
   }
-  async show() { await this.ready(); this.window.show(); }
-  hide() { this.window?.hide(); }
-  dispose() { this.window?.destroy(); this.window = null; }
+  async show() {
+    await this.ready();
+    // Offscreen targets deliberately have no display surface. A normal window shares only
+    // this dedicated browser profile so the owner can sign in without exposing a password to the agent.
+    if (!this.manual || this.manual.isDestroyed()) {
+      this.manual = new BrowserWindow({ title: 'Dooo · Browser sign-in', width: 1280, height: 800, show: false,
+        webPreferences: { partition: PARTITION, sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false } });
+      this.manual.setMenu(null); const wc = this.manual.webContents;
+      for (const event of ['will-navigate','will-frame-navigate','will-redirect']) wc.on(event, details => { if (!webURL(details.url)) details.preventDefault(); });
+      wc.on('will-attach-webview', event => event.preventDefault());
+      wc.setWindowOpenHandler(({url}) => { if(webURL(url)) void wc.loadURL(url).catch(()=>{});return {action:'deny'}; });
+      this.manual.on('close', event => { event.preventDefault();this.manual.hide(); });
+    }
+    await this.manual.loadURL(this.window.webContents.getURL()); this.manualUsed = true; this.manual.show();
+  }
+  async prepare() {
+    await this.ready(); this.hide();
+    if (this.manualUsed && this.manual && !this.manual.isDestroyed()) {
+      const url = this.manual.webContents.getURL();this.manualUsed = false;
+      if (webURL(url)) await this.bounded(this.window.webContents.loadURL(url), 'The signed-in page took too long to open');
+    }
+  }
+  hide() { this.window?.hide(); if(this.manual&&!this.manual.isDestroyed())this.manual.hide(); }
+  dispose() { this.window?.destroy();this.window = null; this.manual?.destroy();this.manual = null; }
 }
 module.exports = { BrowserOperator, PARTITION };

@@ -26,6 +26,12 @@ app.whenReady().then(async () => {
     assert((await clipboard.readText())===clip,'Browser typing must not change the system clipboard');assert(!operator.window.isVisible());
     assert.equal(operator.window.webContents.getLastWebPreferences().sandbox,true);
     assert.equal(await operator.window.webContents.executeJavaScript('typeof require'),'undefined');
+    await act('hotkey',{key:'ctrl+l'});await act('type',{content:'http://127.0.0.1:'+server.address().port+'\n'});
+    await operator.window.webContents.executeJavaScript('document.querySelector("#search")');assert(operator.window.webContents.getURL().startsWith('http://127.0.0.1:'));
+    const {BrowserWindow}=require('electron'),show=BrowserWindow.prototype.show;
+    BrowserWindow.prototype.show=function(){};
+    try { await operator.show();await operator.manual.webContents.executeJavaScript('localStorage.setItem("login-test","signed-in")');await operator.prepare();assert.equal(await operator.window.webContents.executeJavaScript('localStorage.getItem("login-test")'),'signed-in'); }
+    finally { BrowserWindow.prototype.show=show; }
     await assert.rejects(act('navigate',{content:'file:///C:/Windows'}));
     await operator.window.webContents.executeJavaScript('window.open("ms-settings:privacy")');assert(!operator.window.isVisible());
     console.log('PASS: real background Chromium navigation, click, typing, select-all, Enter, screenshots and DOM context; OS pointer/clipboard unchanged; sandboxed with no Node access.');

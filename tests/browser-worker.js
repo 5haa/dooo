@@ -21,6 +21,13 @@ const {randomUUID}=require('node:crypto');const {fixture,until}=require('./contr
     const done=await until(async()=>{const d=(await f.request('/api/mobile/run/'+second.data.run.id)).data;return !['queued','running'].includes(d.run.status)&&d;},'Search request did not finish',25000);assert.equal(done.run.status,'review',done.run.summary);
     const content=await app.evaluate(()=>globalThis.testWorker.browser.window.webContents.executeJavaScript('document.querySelector("#result").textContent'));assert.equal(content,'Found: Neuvix');assert.equal(done.approval,null);
     assert.equal(await app.evaluate(()=>globalThis.testWorker.browser.window.isVisible()),false);
+    await until(()=>app.evaluate(()=>!globalThis.testWorker.current),'Search still finishing');f.setRisk('sensitive');f.setPredictions([`Action: click(start_box='(${box.join(',')})')`]);
+    const pending=await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'Check cancellation on this test page',mode:'browser'});
+    await until(async()=>(await f.request('/api/mobile/run/'+pending.data.run.id)).data.approval,'Cancellation approval missing',25000);
+    await f.request('/api/mobile/run/'+pending.data.run.id+'/stop',{});await until(()=>app.evaluate(()=>!globalThis.testWorker.current),'Stop did not release browser');
+    assert.equal(await app.evaluate(()=>globalThis.testWorker.browser.window),null,'Stop disposes the active target');
+    const preview=await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'[preview]',mode:'browser'});
+    await until(async()=>(await f.request('/api/mobile/run/'+preview.data.run.id)).data.run.status==='review','Browser did not recover after Stop',25000);
     console.log('PASS: actual desktop main process → PCWorker → UI-TARS SDK → risk API → background browser navigates, clicks, types and submits with no approvals or visible browser window.');
   } finally { if(app){await app.evaluate(()=>globalThis.testWorker?.stop()).catch(()=>{});await app.close();}site.closeAllConnections();await new Promise(resolve=>site.close(resolve));await f.close(); }
 })().catch(error=>{console.error(error);process.exitCode=1;});

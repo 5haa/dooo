@@ -13,3 +13,4 @@ app.whenReady().then(async () => {
   await worker.start();
 });
 app.on('before-quit', () => { worker?.stop(); globalShortcut.unregisterAll(); });
+app.on('window-all-closed', () => {}); // Closing an automation target must not stop the background host.
