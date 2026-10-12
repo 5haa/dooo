@@ -6,13 +6,16 @@
  *
  *   npm run test:unit
  *
- * Covers src/main/bounds.js (window geometry, including the click-through safe core) and
+ * Covers src/main/bounds.js (floating-window geometry and scoped data writes) and
  * src/main/login-item.js (with a fake `app`, so the registry is never touched).
  * Exits with 0 on success or 1 on the first failure.
  */
 
 const assert = require('assert');
 const path = require('path');
+const fs = require('fs');
+const vm = require('vm');
+const { randomUUID } = require('crypto');
 
 const bounds = require(path.join(__dirname, '..', 'src', 'main', 'bounds.js'));
 const loginItem = require(path.join(__dirname, '..', 'src', 'main', 'login-item.js'));
@@ -25,85 +28,50 @@ const check = (name, fn) => checks.push([name, fn]);
 // ---------------------------------------------------------------------------------------
 
 const WORK_AREA = { x: 0, y: 0, width: 2560, height: 1392 };
-const WIN = { x: 100, y: 50, width: 420, height: 680 };
-
-check('clampSize rounds and clamps to 360x480 .. 760 x work-area height', () => {
-  assert.deepStrictEqual(bounds.clampSize(500.6, 700.2, WORK_AREA), { width: 501, height: 700 });
-  assert.deepStrictEqual(bounds.clampSize(10, 10, WORK_AREA), { width: 360, height: 480 });
-  assert.deepStrictEqual(bounds.clampSize(5000, 99999, WORK_AREA), { width: 760, height: 1392 });
-  // a work area shorter than the minimum never pushes the height below 480
-  assert.deepStrictEqual(bounds.clampSize(400, 900, { x: 0, y: 0, width: 800, height: 400 }), { width: 400, height: 480 });
+check('floating cards clamp size and stay fully on the matching display', () => {
+  assert.deepStrictEqual(bounds.projectBounds({x:3000,y:2000,width:900,height:1600}, WORK_AREA, true), {x:1760,y:16,width:800,height:1376});
+  assert.deepStrictEqual(bounds.projectBounds({x:-50,y:-30,width:200,height:200}, WORK_AREA, false), {x:0,y:0,width:300,height:120});
+  assert.deepStrictEqual(bounds.projectBounds({x:-4000,y:-500,width:380,height:480}, {x:-1920,y:0,width:1920,height:1040}, true), {x:-1920,y:0,width:380,height:480});
 });
-
-check('defaultBounds: top-right of the work area with a 24px margin', () => {
-  assert.deepStrictEqual(bounds.defaultBounds(WORK_AREA), { x: 2560 - 420 - 24, y: 24, width: 420, height: 680 });
-  // second display to the left of the primary, with a short work area
-  assert.deepStrictEqual(bounds.defaultBounds({ x: -1920, y: 0, width: 1920, height: 700 }), {
-    x: -1920 + 1920 - 420 - 24,
-    y: 24,
-    width: 420,
-    height: 700 - 48,
-  });
+check('arranged collapsed cards occupy separate rows and columns', () => {
+  const a=bounds.projectPosition(0,WORK_AREA), b=bounds.projectPosition(1,WORK_AREA), c=bounds.projectPosition(10,WORK_AREA);
+  assert.strictEqual(b.y-a.y,132); assert.strictEqual(a.x,b.x); assert(c.x<a.x); assert.strictEqual(c.y,a.y);
 });
-
-check('isReachable needs the drag strip on a work area', () => {
-  assert.strictEqual(bounds.isReachable(WIN, [WORK_AREA]), true);
-  assert.strictEqual(bounds.isReachable({ ...WIN, x: -30000, y: -30000 }, [WORK_AREA]), false);
-  // body on-screen but the top strip (drag area) above the screen: not reachable
-  assert.strictEqual(bounds.isReachable({ ...WIN, y: -100 }, [WORK_AREA]), false);
-  // window on a second display
-  assert.strictEqual(bounds.isReachable({ ...WIN, x: -1500 }, [WORK_AREA, { x: -1920, y: 0, width: 1920, height: 1040 }]), true);
-});
-
-check('sameBounds', () => {
-  assert.strictEqual(bounds.sameBounds(WIN, { ...WIN }), true);
-  assert.strictEqual(bounds.sameBounds(WIN, { ...WIN, width: 421 }), false);
-  assert.strictEqual(bounds.sameBounds(WIN, null), false);
-});
-
-check('safeCore is the window inset by 14 + 24 px on every side', () => {
-  assert.strictEqual(bounds.PANEL_INSET + bounds.SAFE_CORE_MARGIN, 38);
-  assert.deepStrictEqual(bounds.safeCore(WIN), { x: 138, y: 88, width: 344, height: 604 });
-  assert.deepStrictEqual(bounds.safeCore({ x: 0, y: 0, width: 60, height: 60 }), { x: 38, y: 38, width: 0, height: 0 });
-});
-
-check('isInSafeCore: inside the core', () => {
-  const center = { x: WIN.x + WIN.width / 2, y: WIN.y + WIN.height / 2 };
-  assert.strictEqual(bounds.isInSafeCore(center, WIN), true);
-  assert.strictEqual(bounds.isInSafeCore({ x: 138, y: 88 }, WIN), true); // top-left corner of the core
-  assert.strictEqual(bounds.isInSafeCore({ x: 481, y: 691 }, WIN), true); // last pixel of the core
-});
-
-check('isInSafeCore: core edges are exclusive on the far side', () => {
-  assert.strictEqual(bounds.isInSafeCore({ x: 137, y: 300 }, WIN), false);
-  assert.strictEqual(bounds.isInSafeCore({ x: 300, y: 87 }, WIN), false);
-  assert.strictEqual(bounds.isInSafeCore({ x: 482, y: 300 }, WIN), false);
-  assert.strictEqual(bounds.isInSafeCore({ x: 300, y: 692 }, WIN), false);
-});
-
-check('isInSafeCore: transparent margin, rounded corners, hide badge and grip are outside', () => {
-  const right = WIN.x + WIN.width;
-  const bottom = WIN.y + WIN.height;
-  for (const p of [
-    { x: WIN.x + 5, y: WIN.y + 300 }, // left transparent margin
-    { x: WIN.x + 16, y: WIN.y + 16 }, // panel's rounded top-left corner
-    { x: right - 20, y: WIN.y + 20 }, // corner hide badge
-    { x: right - 20, y: bottom - 20 }, // resize grip
-    { x: WIN.x + 200, y: bottom - 30 }, // bottom edge band of the panel
-  ]) {
-    assert.strictEqual(bounds.isInSafeCore(p, WIN), false, JSON.stringify(p));
+check('dock opening preserves its anchor and flips the tray away from screen edges', () => {
+  const area={x:0,y:0,width:1920,height:1040};
+  for(const anchor of [{x:1876,y:350},{x:0,y:975},{x:900,y:8}]) {
+    const closed=bounds.dockLayout(anchor,area,false), opened=bounds.dockLayout(anchor,area,true,240);
+    assert.deepStrictEqual(closed.anchor,opened.anchor);
+    assert.strictEqual(closed.bounds.x+closed.buttonLeft,opened.bounds.x+opened.buttonLeft);
+    assert.strictEqual(closed.bounds.y+closed.buttonTop,opened.bounds.y+opened.buttonTop);
+    assert(opened.bounds.x>=0 && opened.bounds.y>=0 && opened.bounds.x+opened.bounds.width<=1920 && opened.bounds.y+opened.bounds.height<=1040);
   }
+  assert.strictEqual(bounds.dockLayout({x:0,y:200},area,true).side,'right');
+  assert.strictEqual(bounds.dockLayout({x:1876,y:200},area,true).side,'left');
+  const left=bounds.dockLayout({x:-1900,y:300},{x:-1920,y:0,width:1920,height:1040},true);
+  assert(left.bounds.x>=-1920 && left.bounds.x+left.bounds.width<=0);
 });
-
-check('isInSafeCore: outside the window, bad input, negative coordinates', () => {
-  assert.strictEqual(bounds.isInSafeCore({ x: 5, y: 5 }, WIN), false);
-  assert.strictEqual(bounds.isInSafeCore({ x: NaN, y: 300 }, WIN), false);
-  assert.strictEqual(bounds.isInSafeCore(null, WIN), false);
-  assert.strictEqual(bounds.isInSafeCore({ x: 300, y: 300 }, null), false);
-  assert.strictEqual(bounds.isInSafeCore({ x: 30, y: 30 }, { x: 0, y: 0, width: 60, height: 60 }), false); // empty core
-  const left = { x: -1800, y: 100, width: 420, height: 680 }; // display left of the primary
-  assert.strictEqual(bounds.isInSafeCore({ x: -1590, y: 440 }, left), true);
-  assert.strictEqual(bounds.isInSafeCore({ x: -1790, y: 440 }, left), false);
+const { mergeProjectTasks, normalizeProjects } = require('../src/main/project-data');
+check('concurrent project saves preserve other projects, including completed tasks', () => {
+  const a={id:'a',projectId:'one',title:'A',done:true}, b={id:'b',projectId:'two',title:'B'};
+  let all=mergeProjectTasks([a,b],[{...a,title:'Updated A'}],'one');
+  all=mergeProjectTasks(all,[{...b,title:'Updated B'}],'two');
+  assert.deepStrictEqual(all.find(t=>t.id==='a'),{...a,title:'Updated A'});
+  assert.strictEqual(all.find(t=>t.id==='b').title,'Updated B');
+  assert.deepStrictEqual(mergeProjectTasks(all,[],'two'),[{...a,title:'Updated A'}]);
+});
+check('a project cannot write another project or collide with an existing task id', () => {
+  const a={id:'a',projectId:'one'};
+  assert.throws(()=>mergeProjectTasks([a],[{id:'a',projectId:'two'}],'two'));
+  assert.throws(()=>mergeProjectTasks([a],[{id:'b',projectId:'one'}],'two'));
+  assert.throws(()=>mergeProjectTasks([a],[{id:'b',projectId:'two'},{id:'b',projectId:'two'}],'two'));
+});
+check('main-process migration preserves legacy and orphaned project tasks', () => {
+  let tasks=[{id:'old',title:'Existing'},{id:'orphan',title:'Recovered',projectId:'lost'}];
+  let settings={projects:[{id:'personal',name:'Personal'}]};
+  const projects=normalizeProjects({getTasks:()=>tasks,saveTasks:value=>tasks=value,getSettings:()=>settings,updateSettings:patch=>settings={...settings,...patch}});
+  assert.strictEqual(tasks[0].projectId,'personal');assert.strictEqual(tasks[1].projectId,'lost');
+  assert.deepStrictEqual(projects,[{id:'personal',name:'Tasks'},{id:'lost',name:'Recovered project'}]);
 });
 
 // ---------------------------------------------------------------------------------------
@@ -209,6 +177,96 @@ check('login item toggle: unpackaged or DOOO_DISABLE_AUTOSTART touches nothing',
   const disabled = fakeApp();
   assert.strictEqual(loginItem.setLoginItem(disabled, false, { env: { DOOO_DISABLE_AUTOSTART: '1' }, execPath: EXE }), 'skipped');
   assert.deepStrictEqual([...dev.calls, ...disabled.calls], []);
+});
+
+// Project membership must never cause one tab's changes to affect another tab's tasks.
+function projectStore(tasks = [], settings = {}) {
+  const savedSettings = { ...settings };
+  const window = {
+    crypto: { randomUUID },
+    matchMedia: () => ({ matches: true }),
+    dooo: {
+      saveTasks: () => Promise.resolve(),
+      updateSettings: (patch) => Promise.resolve(JSON.parse(JSON.stringify(Object.assign(savedSettings, patch)))),
+    },
+  };
+  const context = vm.createContext({ window, console });
+  for (const file of ['util.js', 'store.js']) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/renderer/js', file), 'utf8'), context);
+  }
+  const store = window.Dooo.store;
+  store.init({ tasks, settings });
+  return store;
+}
+const plain = value => JSON.parse(JSON.stringify(value));
+
+check('legacy tasks retain their content and move into the default tab; missing project settings recover', () => {
+  const store = projectStore([
+    null,
+    { id: 'old', title: 'Existing task', priority: 'high', due: '2027-04-18', done: false },
+    { id: 'orphan', projectId: 'lost', title: 'Recovered task', done: false },
+  ], { activeProjectId: 'missing' });
+  assert.strictEqual(store.activeProjectId, 'personal');
+  assert.deepStrictEqual(Array.from(store.open(), t => t.id), ['old']);
+  assert.strictEqual(store.get('old').priority, 'high');
+  assert.strictEqual(store.get('old').due, '2027-04-18');
+  assert(store.projects.some(p => p.id === 'lost'));
+  store.selectProject('lost');
+  assert.deepStrictEqual(Array.from(store.open(), t => t.id), ['orphan']);
+});
+
+check('the old Personal tab label is removed without changing its tasks or selected project', () => {
+  const store = projectStore([{ id: 'existing', title: 'Existing', projectId: 'personal' }], {
+    projects: [{ id: 'personal', name: 'Personal' }], activeProjectId: 'personal',
+  });
+  assert.strictEqual(store.projects[0].name, 'Tasks');
+  assert.strictEqual(store.activeProjectId, 'personal');
+  assert.strictEqual(store.open()[0].id, 'existing');
+});
+
+check('project creation, renaming and selection keep stable task membership', () => {
+  const store = projectStore();
+  const personal = store.add({ title: 'Personal task' }).task;
+  const work = store.createProject(' Work ');
+  const workTask = store.add({ title: 'Work task' }).task;
+  assert.strictEqual(store.activeProjectId, work.id);
+  assert.strictEqual(workTask.projectId, work.id);
+  assert.deepStrictEqual(Array.from(store.open(), t => t.id), [workTask.id]);
+  store.selectProject('personal');
+  assert.deepStrictEqual(Array.from(store.open(), t => t.id), [personal.id]);
+  assert.strictEqual(store.createProject('work').id, work.id);
+  assert.strictEqual(store.projects.length, 2);
+  assert.strictEqual(store.renameProject(work.id, 'Launch'), true);
+  assert.strictEqual(store.renameProject(work.id, 'Tasks'), false);
+  assert.strictEqual(store.createProject('   '), null);
+  assert.strictEqual(workTask.projectId, work.id);
+});
+
+check('reordering and clearing completed tasks are restricted to the active project', () => {
+  const store = projectStore();
+  const a = store.add({ title: 'A' }).task;
+  const b = store.add({ title: 'B' }).task;
+  store.complete(a.id);
+  const work = store.createProject('Work');
+  const c = store.add({ title: 'C' }).task;
+  const d = store.add({ title: 'D' }).task;
+  const otherTasks = plain(store.tasks.filter(t => t.projectId === 'personal'));
+  store.moveOpen(c.id, 0);
+  assert.deepStrictEqual(Array.from(store.open(), t => t.title), ['C', 'D']);
+  assert.deepStrictEqual(plain(store.tasks.filter(t => t.projectId === 'personal')), otherTasks);
+  store.complete(c.id);
+  assert.deepStrictEqual(Array.from(store.done(), t => t.id), [c.id]);
+  const cleared = store.clearDone();
+  assert.strictEqual(cleared.count, 1);
+  assert(store.get(a.id));
+  assert.strictEqual(store.get(c.id), null);
+  cleared.undo();
+  assert.strictEqual(store.get(c.id).projectId, work.id);
+  store.restore(c.id);
+  assert.deepStrictEqual(Array.from(store.open(), t => t.id), [c.id, d.id]);
+  store.selectProject('personal');
+  assert.deepStrictEqual(Array.from(store.open(), t => t.id), [b.id]);
+  assert.deepStrictEqual(Array.from(store.done(), t => t.id), [a.id]);
 });
 
 // ---------------------------------------------------------------------------------------

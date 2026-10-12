@@ -3,7 +3,7 @@
  *   clicks reach the desktop; over the panel it takes them again. Called only on state changes, never during a drag
  *   or resize, and any pointerdown / keydown / focus on the page switches it back off (fail safe).
  * - Resize grip: pointer capture, new size = start size + screen delta, at most one setSize per animation frame.
- * - Hide: the small corner badge hides the window to the tray.
+ * - The grip also supports arrow keys, with Shift for larger steps.
  */
 (function () {
   'use strict';
@@ -63,6 +63,15 @@
   }
 
   function initGrip(grip) {
+    grip.addEventListener('keydown', function (e) {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) < 0) return;
+      e.preventDefault();
+      var step = e.shiftKey ? 40 : 10;
+      api().window.getSize().then(function (size) {
+        api().window.setSize(size.width + (e.key === 'ArrowRight' ? step : e.key === 'ArrowLeft' ? -step : 0),
+          size.height + (e.key === 'ArrowDown' ? step : e.key === 'ArrowUp' ? -step : 0));
+      }).catch(function (err) { console.error('Dooo: resize failed', err); });
+    });
     grip.addEventListener('pointerdown', function (e) {
       if (e.button !== 0 || rs) return;
       e.preventDefault();
@@ -124,10 +133,6 @@
 
     initGrip(document.getElementById('resize-grip'));
 
-    document.getElementById('hide-btn').addEventListener('click', function () {
-      setIgnore(false);
-      try { api().window.hide(); } catch (err) { console.error('Dooo: hide failed', err); }
-    });
   }
 
   D.win = { init: init, suspend: suspend, resume: resume, isIgnoring: function () { return ignoring; } };

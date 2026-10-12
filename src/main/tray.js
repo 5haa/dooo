@@ -43,7 +43,7 @@ function loadTrayImage(assetsDir) {
  *   onQuit()             really quit
  * Returns { tray, source, refresh(), destroy() }.
  */
-function createTray({ assetsDir, getSettings, onShow, onToggle, onQuit }) {
+function createTray({ assetsDir, getSettings, onShow, onToggle, onQuit, getSyncStatus = () => null, onSync = () => {} }) {
   const { image, source } = loadTrayImage(assetsDir);
   const tray = new Tray(image);
   tray.setToolTip('Dooo');
@@ -52,9 +52,12 @@ function createTray({ assetsDir, getSettings, onShow, onToggle, onQuit }) {
   function refresh() {
     if (tray.isDestroyed()) return;
     const settings = getSettings();
+    const sync = getSyncStatus();
+    const labels = { synced: 'Synced', syncing: 'Syncing…', pending: 'Changes waiting to sync', offline: 'Offline — changes saved locally', unauthorized: 'Sign-in key needs attention', 'configuration-error': 'Connection needs attention' };
     tray.setContextMenu(
       Menu.buildFromTemplate([
         { label: 'Show Dooo', click: () => onShow() },
+        ...(sync ? [{ label: 'Cloud: ' + (labels[sync.state] || sync.state), enabled: false }, { label: 'Sync now', click: onSync }, { type: 'separator' }] : []),
         {
           label: 'Keep on top',
           type: 'checkbox',

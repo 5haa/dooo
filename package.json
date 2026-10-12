@@ -2,13 +2,16 @@
   "name": "dooo",
   "productName": "Dooo",
   "version": "1.0.0",
-  "description": "A glassy little to-do widget for your Windows desktop",
+  "description": "Floating project cards for your Windows desktop",
   "author": "5haa",
   "private": true,
   "license": "UNLICENSED",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
+    "start:server": "node src/server/server.js",
+    "test:cloud": "node --test tests/cloud.test.js",
+    "test:cloud:e2e": "node tests/cloud-electron.js",
     "pack": "electron-builder --win --dir",
     "dist": "electron-builder --win nsis",
     "test:e2e": "node tests/e2e.js",
@@ -53,5 +56,8 @@
       "include": "build/installer.nsh",
       "artifactName": "Dooo-Setup-${version}.${ext}"
     }
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }

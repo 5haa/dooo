@@ -17,6 +17,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { EventEmitter } = require('events');
 
 const MAX_TASKS_BYTES = 5 * 1024 * 1024;
 const MAX_SETTINGS_BYTES = 4 * 1024 * 1024;
@@ -217,8 +218,9 @@ function sanitizeWindowState(value) {
   return { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
 }
 
-class Store {
+class Store extends EventEmitter {
   constructor(dir) {
+    super();
     this.dir = dir;
     this.tasksFile = new JsonFile(path.join(dir, 'tasks.json'), Array.isArray);
     this.settingsFile = new JsonFile(path.join(dir, 'settings.json'), isPlainObject);
@@ -265,6 +267,7 @@ class Store {
     const stored = JSON.parse(compact);
     this.tasksFile.save(stored);
     this.tasks = stored;
+    this.emit('change');
   }
 
   getSettings() {
@@ -295,6 +298,7 @@ class Store {
     const stored = JSON.parse(json);
     this.settingsFile.save(stored, json);
     this.settings = stored;
+    if (keys.includes('projects')) this.emit('change');
     return { settings: this.getSettings(), keys };
   }
 

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dooo controls</title><link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/dock.css">
+<script defer src="js/icons.js"></script><script defer src="js/dock.js"></script>
+</head>
+<body>
+<div id="dock">
+  <button id="edge-toggle" class="edge-toggle" aria-label="Open project controls" aria-expanded="false" aria-controls="dock-menu" title="Project controls · Drag to move"><i data-icon="plus"></i></button>
+  <section class="dock-menu" id="dock-menu" aria-label="Project controls" inert>
+    <div class="dock-actions" role="group" aria-label="Project actions">
+      <button id="new-project-toggle" aria-label="New project" title="New project" aria-expanded="false" aria-controls="new-project-form"><i data-icon="folder-plus"></i></button>
+      <button data-action="show-all" aria-label="Show projects" title="Show projects"><i data-icon="eye"></i></button>
+      <button data-action="hide-all" aria-label="Minimize all" title="Minimize all"><i data-icon="minus"></i></button>
+      <button data-action="expand-all" aria-label="Show all tasks" title="Show all tasks"><i data-icon="chevrons-down"></i></button>
+      <button data-action="collapse-all" aria-label="Collapse all" title="Collapse all"><i data-icon="chevrons-up"></i></button>
+      <button data-action="arrange" aria-label="Arrange projects" title="Arrange projects"><i data-icon="layout-grid"></i></button>
+    </div>
+    <form id="new-project-form" hidden>
+      <input id="new-project-name" aria-label="New project name" placeholder="Project name…" maxlength="48" required>
+      <button type="submit" aria-label="Create project" title="Create project"><i data-icon="arrow-up"></i></button>
+    </form>
+    <div class="dock-footer">
+      <div id="dock-projects" class="dock-projects" role="group" aria-label="Your projects"></div>
+      <button id="settings-toggle" class="settings-toggle" aria-label="Settings" title="Settings" aria-expanded="false" aria-controls="dock-settings"><i data-icon="settings"></i></button>
+    </div>
+    <div class="dock-settings" id="dock-settings" role="group" aria-label="Settings" hidden>
+      <button id="always-on-top" aria-label="Keep on top" title="Keep on top" aria-pressed="false"><i data-icon="pin"></i></button>
+      <button id="launch-at-login" aria-label="Launch at startup" title="Launch at startup" aria-pressed="false"><i data-icon="power"></i></button>
+    </div>
+    <p id="dock-error" role="alert" hidden></p>
+  </section>
+</div>
+</body></html>

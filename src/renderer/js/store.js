@@ -1,6 +1,6 @@
 /* Dooo: state + persistence.
- * Task: { id, title, priority: 'high'|'medium'|'low', due: "YYYY-MM-DD" | "YYYY-MM-DDTHH:mm" | null,
- *         done, createdAt, completedAt }
+ * Task: { id, title, priority: 'none'|'high'|'medium'|'low', due: "YYYY-MM-DD" | "YYYY-MM-DDTHH:mm" | null,
+ *         projectId, done, createdAt, completedAt }
  * The array order is the user's manual order of open tasks. Completing a task leaves it in place, so an undo puts
  * it back exactly where it was. Every change is followed by dooo.saveTasks(tasks), with no debounce.
  */
@@ -9,8 +9,9 @@
 
   var D = window.Dooo;
   var U = D.util;
-  var PRIORITIES = ['high', 'medium', 'low'];
+  var PRIORITIES = ['none', 'high', 'medium', 'low'];
   var MAX_TITLE = 300;
+  var DEFAULT_PROJECT = 'personal';
   var listeners = {};
 
   function api() { return window.dooo; }
@@ -28,8 +29,9 @@
     var done = !!t.done;
     return Object.assign({}, t, {
       id: id,
+      projectId: typeof t.projectId === 'string' && t.projectId ? t.projectId : DEFAULT_PROJECT,
       title: cleanTitle(t.title) || 'Untitled',
-      priority: PRIORITIES.indexOf(t.priority) >= 0 ? t.priority : 'medium',
+      priority: PRIORITIES.indexOf(t.priority) >= 0 ? t.priority : 'none',
       due: U.parseDue(t.due) ? t.due : null,
       done: done,
       createdAt: createdAt,
@@ -40,6 +42,8 @@
   var store = {
     tasks: [],
     settings: {},
+    projects: [],
+    activeProjectId: DEFAULT_PROJECT,
     version: '',
 
     on: function (evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); },
@@ -47,10 +51,66 @@
 
     init: function (data) {
       data = data || {};
-      var seen = {};
+      var seen = Object.create(null);
       this.tasks = (Array.isArray(data.tasks) ? data.tasks : []).map(function (t) { return normalizeTask(t, seen); }).filter(Boolean);
       this.settings = Object.assign({}, data.settings || {});
       this.version = data.version ? String(data.version) : '';
+      var projectIds = new Set();
+      this.projects = (Array.isArray(this.settings.projects) ? this.settings.projects : []).filter(function (p) {
+        if (!p || typeof p.id !== 'string' || !p.id || typeof p.name !== 'string' || !p.name.trim() || projectIds.has(p.id)) return false;
+        projectIds.add(p.id);
+        return true;
+      }).map(function (p) {
+        return { id: p.id, name: p.id === DEFAULT_PROJECT && p.name === 'Personal' ? 'Tasks' : cleanTitle(p.name).slice(0, 48) };
+      });
+      if (!projectIds.has(DEFAULT_PROJECT)) {
+        this.projects.unshift({ id: DEFAULT_PROJECT, name: 'Tasks' });
+        projectIds.add(DEFAULT_PROJECT);
+      }
+      // A recovered tasks file can outlive its settings file. Keep every project reachable.
+      var projects = this.projects;
+      this.tasks.forEach(function (t) {
+        if (projectIds.has(t.projectId)) return;
+        projectIds.add(t.projectId);
+        projects.push({ id: t.projectId, name: 'Recovered project' });
+      });
+      this.activeProjectId = projectIds.has(this.settings.activeProjectId) ? this.settings.activeProjectId : DEFAULT_PROJECT;
+      if (JSON.stringify(this.settings.projects) !== JSON.stringify(this.projects) || this.settings.activeProjectId !== this.activeProjectId) {
+        this.updateSettings({ projects: this.projects, activeProjectId: this.activeProjectId });
+      }
+      if (Array.isArray(data.tasks) && data.tasks.some(function (t) {
+        return t && typeof t === 'object' && (typeof t.projectId !== 'string' || !t.projectId);
+      })) this.persist();
+    },
+
+    selectProject: function (id) {
+      if (id === this.activeProjectId || !this.projects.some(function (p) { return p.id === id; })) return false;
+      var previous = this.activeProjectId;
+      this.activeProjectId = id;
+      this.updateSettings({ activeProjectId: id });
+      this.emit('project', { previous: previous, id: id });
+      return true;
+    },
+    createProject: function (name) {
+      name = cleanTitle(name).slice(0, 48);
+      if (!name) return null;
+      var existing = this.projects.find(function (p) { return p.name.toLocaleLowerCase() === name.toLocaleLowerCase(); });
+      if (existing) { this.selectProject(existing.id); return existing; }
+      var project = { id: U.uid(), name: name };
+      this.projects = this.projects.concat(project);
+      this.updateSettings({ projects: this.projects });
+      this.emit('projects');
+      this.selectProject(project.id);
+      return project;
+    },
+    renameProject: function (id, name) {
+      name = cleanTitle(name).slice(0, 48);
+      if (!name || !this.projects.some(function (p) { return p.id === id; })) return false;
+      if (this.projects.some(function (p) { return p.id !== id && p.name.toLocaleLowerCase() === name.toLocaleLowerCase(); })) return false;
+      this.projects = this.projects.map(function (p) { return p.id === id ? { id: id, name: name } : p; });
+      this.updateSettings({ projects: this.projects });
+      this.emit('projects');
+      return true;
     },
 
     get: function (id) {
@@ -61,13 +121,18 @@
       for (var i = 0; i < this.tasks.length; i++) if (this.tasks[i].id === id) return i;
       return -1;
     },
-    open: function () { return this.tasks.filter(function (t) { return !t.done; }); },
+    open: function () {
+      var projectId = this.activeProjectId;
+      return this.tasks.filter(function (t) { return !t.done && t.projectId === projectId; });
+    },
     done: function () {
-      return this.tasks.filter(function (t) { return t.done; })
+      var projectId = this.activeProjectId;
+      return this.tasks.filter(function (t) { return t.done && t.projectId === projectId; })
         .sort(function (a, b) { return (b.completedAt || 0) - (a.completedAt || 0); });
     },
 
     persist: function () {
+      this.emit('tasks');
       var p;
       try {
         p = api().saveTasks(this.tasks);
@@ -83,8 +148,9 @@
     add: function (fields) {
       var task = {
         id: U.uid(),
+        projectId: this.activeProjectId,
         title: cleanTitle(fields.title) || 'Untitled',
-        priority: PRIORITIES.indexOf(fields.priority) >= 0 ? fields.priority : 'medium',
+        priority: PRIORITIES.indexOf(fields.priority) >= 0 ? fields.priority : 'none',
         due: U.parseDue(fields.due) ? fields.due : null,
         done: false,
         createdAt: Date.now(),
@@ -99,11 +165,13 @@
     /* Dropped text: one task per line, inserted at the top in line order. */
     addMany: function (titles, priority) {
       var now = Date.now();
+      var projectId = this.activeProjectId;
       var made = titles.map(function (title, i) {
         return {
           id: U.uid(),
+          projectId: projectId,
           title: cleanTitle(title) || 'Untitled',
-          priority: PRIORITIES.indexOf(priority) >= 0 ? priority : 'medium',
+          priority: PRIORITIES.indexOf(priority) >= 0 ? priority : 'none',
           due: null,
           done: false,
           createdAt: now + i,
@@ -140,7 +208,7 @@
       return function () { self.revert(snap); };
     },
 
-    /* Back to the open list: to the very top (drag onto Home, or the Done-view toggle). */
+    /* Restore in place so checked rows never jump around. */
     restore: function (id) {
       var i = this.indexOf(id);
       if (i < 0 || !this.tasks[i].done) return null;
@@ -148,8 +216,6 @@
       var t = this.tasks[i];
       t.done = false;
       t.completedAt = null;
-      this.tasks.splice(i, 1);
-      this.tasks.unshift(t);
       this.persist();
       var self = this;
       return function () { self.revert(snap); };
@@ -165,16 +231,16 @@
     },
 
     clearDone: function () {
-      var ids = this.tasks.filter(function (t) { return t.done; }).map(function (t) { return t.id; });
+      var ids = this.done().map(function (t) { return t.id; });
       if (!ids.length) return { count: 0, undo: null };
       var snap = this.snapshot(ids);
-      this.tasks = this.tasks.filter(function (t) { return !t.done; });
+      this.tasks = this.tasks.filter(function (t) { return ids.indexOf(t.id) < 0; });
       this.persist();
       var self = this;
       return { count: ids.length, undo: function () { self.revert(snap); } };
     },
 
-    /* Reorder within the open tasks; done tasks keep their slots in the array. */
+    /* Reorder only the current project's open tasks. Other projects retain their slots. */
     moveOpen: function (id, toIndex) {
       var open = this.open();
       var from = -1;
@@ -185,7 +251,8 @@
       var moved = open.splice(from, 1)[0];
       open.splice(toIndex, 0, moved);
       var k = 0;
-      this.tasks = this.tasks.map(function (t) { return t.done ? t : open[k++]; });
+      var projectId = this.activeProjectId;
+      this.tasks = this.tasks.map(function (t) { return t.done || t.projectId !== projectId ? t : open[k++]; });
       this.persist();
       return true;
     },

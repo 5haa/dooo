@@ -1,140 +1,111 @@
 # Dooo
 
-A glassy little to-do widget for your Windows desktop
+Floating project cards for your Windows desktop.
 
 ![Dooo](docs/screenshot.png)
 
-## Features
+## Using Dooo
 
-- **Glass design.** Frosted, translucent cards, soft shadows and rounded corners. No title bar and no taskbar button: it just sits on your desktop.
-- **Opens when you sign in to Windows.** On by default, and you can turn it off any time. It opens without stealing focus.
-- **Keep on top.** Pin Dooo above your other windows with the pin button.
-- **Drag and drop.**
-  - Reorder tasks by dragging them.
-  - Drag a task onto **Done** to complete it, and drag it from the Done view back onto **Home** to restore it.
-  - Drop text from any app onto the widget and each line becomes a task.
-- **Priorities.** High, Medium or Low, shown as a colored tag on every task.
-- **Due dates and times.** Pick Today, Tomorrow or any date, with an optional time. Overdue tasks turn red.
-- **Undo.** A quick Undo button appears after you complete, restore or delete a task.
-- **Tray icon.** Hide Dooo out of the way and bring it back with one click.
-- **Remembers its position and size.** Dooo comes back where you left it.
-- **Your data stays local.** No account and no sync: tasks and settings are saved on your PC, and Dooo blocks web requests.
+- **Open tasks:** click a project card to expand its task list. Click its header again to collapse it.
+- **Move:** drag a card by its header. Each project is a separate native window and moves independently.
+- **Plus controls:** drag the plus anywhere on the desktop; near the left or right edge it snaps into a small tab. Click it for a compact icon tray. Hover an icon for its label. Use the folder-plus to create a project, the colored folder icons to restore one, and the eye, minus, chevrons, or grid to show, minimize, expand, collapse, or arrange cards. The gear reveals settings.
+- **Add:** type in the bottom input and press Enter. Click empty space in the task list or press Ctrl+N to focus task entry.
+- **Complete:** click a task's circle, or focus the row and press Space. The check, strike-through, and progress ring animate; the task stays in the same place. Click again to restore it.
+- **Optional details:** click the sliders icon for priority, date, or time. Only assigned details appear on a task. The eraser icon removes all three.
+- **Edit:** click a task, edit it in the bottom input, and press Enter or the check icon. The cancel icon restores any unfinished new-task draft. Collapsing a card preserves its draft.
+- **Rename:** expand the card and click its pencil icon.
+- **Reorder:** drag an unfinished task onto another, or focus it and press Alt+Up / Alt+Down. Completed tasks stay in place.
+- **Delete:** hover or focus a row to reveal its delete button, or press Delete on the row. An undo icon appears in the toolbar briefly after a change, without moving the task list.
+- **Clear completed:** use the project's ellipsis menu. This affects only that project and offers Undo.
+- **Drop text:** drop text into an expanded card to create one task per line, up to 20 lines.
+- **Minimize:** use the small minus revealed at the top-right of a card, its options menu, or Alt+F4. Restore it through the edge controls or tray.
+- **Resize:** expand a card and drag its bottom-right handle. Arrow keys on the handle resize by 10 px, or 40 px with Shift.
+
+Each card has a white surface, a thin dark outline, and a small offset shadow. There is no shared dashboard background. Rings show actual completed tasks as a percentage of that project's total. Completed rows remain visible until you explicitly delete or clear them. Motion respects the system's reduced-motion preference.
+
+## Window and settings
+
+Expanded cards support widths from 300 to 800 px, constrained to the display, and heights from 280 px to the available screen height. Collapsed cards are 120 px tall including transparent margins. Each project's position, size, visibility, and expansion state are saved separately. The plus position is also saved. Opening its icon tray keeps the plus in place and chooses the side with room.
+
+The edge control stays available while cards are minimized. **Arrange projects** shows and collapses the cards into rows and columns. **Show all tasks** expands them at their current positions; you can then move them wherever you want.
+
+**Keep on top** and **Launch at startup** are available under the gear in the icon tray, and in the Windows tray. Packaged builds open at sign-in by default, without stealing focus. Clicking the tray icon or launching Dooo again shows all cards. Use Quit in the tray menu to exit.
+
+## Keyboard shortcuts
+
+| Keys | Action |
+| --- | --- |
+| Arrows on the plus | Move it by 10 px, or 40 px with Shift |
+| Ctrl+N | Expand the project and focus task entry |
+| Enter | Add/save a task, or edit a focused row |
+| Space on a task | Complete or restore it |
+| Up / Down on a task | Focus the previous / next task |
+| Alt+Up / Alt+Down | Reorder an unfinished task |
+| Delete on a task | Delete it |
+| Esc | Close the menu, cancel editing, hide details, or collapse the card |
+| Arrows on the resize handle | Resize by 10 px, or 40 px with Shift |
 
 ## Install
 
-Build the installer (requirements are under [Development](#development)):
+Requires Windows 10/11 and Node.js 20+ (built with Node 24).
 
 ```
 npm install
 npm run dist
 ```
 
-1. The installer lands at `dist\Dooo-Setup-1.0.0.exe`.
-2. Double-click it. It installs for the current user without admin rights, creates Start-menu and desktop shortcuts, and launches Dooo.
-3. The installer is unsigned, so Windows SmartScreen may say "Windows protected your PC". Click **More info**, then **Run anyway**.
+The installer is created at `dist\Dooo-Setup-1.0.0.exe`. It installs for the current user, creates shortcuts, and launches Dooo. The installer is unsigned, so Windows SmartScreen may display a warning.
 
-To uninstall, use Settings > Apps. That also removes the startup entry; your tasks are kept (see [Your data](#your-data)).
-
-## Using Dooo
-
-### Tasks
-
-- **Add:** click the **+** button or press `Ctrl+N`. Type the task, optionally set a priority, a due date (Today, Tomorrow or Date) and a time, then press `Enter` or click **Add task**. New tasks go to the top of the list.
-- **Complete:** click the circle on the right of a task. It moves to **Done**.
-- **Edit:** click a task to reopen it in the sheet.
-- **The ··· menu:** the three dots on a task offer Edit, a quick Priority switch and Delete. On a completed task they offer Restore and Delete.
-- **Undo:** after you complete, restore or delete a task, clear completed tasks, or add tasks by dropping text, a toast with an **Undo** button shows for a few seconds. `Ctrl+Z` does the same while it is showing.
-- **Done:** the middle tab lists finished tasks, newest first. Restore one with its green check or its ··· menu, or empty the list with **Clear all**.
-
-### Drag and drop
-
-- **Reorder:** press on a task (not on its buttons) and drag it up or down the list.
-- **Complete:** drag a task onto **Done** in the bottom bar.
-- **Restore:** in the Done view, drag a task onto **Home**. It goes back to the top of your list.
-- **Add from other apps:** select text anywhere, drag it onto Dooo and drop it. Each non-empty line becomes a Medium-priority task with no due date (up to 20 lines per drop; leading bullets, numbers and checkboxes are removed). Dropped files are ignored.
-- `Esc` cancels a drag in progress.
-
-### The widget and the tray
-
-- **Move:** drag the header.
-- **Resize:** drag the grip in the bottom-right corner (it appears when you hover over Dooo). The smallest size is 360 x 480; the widest is 760 px, and it can be as tall as your screen's usable area.
-- **Hide:** click the small **x** in the top-right corner (it appears on hover). Dooo keeps running in the tray. `Alt+F4` does the same: closing the window only hides it.
-- **Get it back:** click the tray icon (it may be behind the ^ arrow in the notification area) or launch Dooo again from the Start menu or desktop shortcut. There is only ever one Dooo, so launching it again just brings the existing widget back.
-- **Tray menu:** right-click the tray icon for **Show Dooo**, **Keep on top** and **Launch at startup** (both checkboxes), and **Quit Dooo**.
-
-### Settings
-
-Open the gear on the bottom bar:
-
-- **Your name** (used in the greeting) and a **profile photo** (cropped to a small square and stored with your settings).
-- **Keep on top.** The same switch as the pin button in the header.
-- **Launch at startup.** Opens Dooo when you sign in to Windows.
-- **Clear completed.** Removes all finished tasks (with Undo).
-- **Quit.** Closes Dooo completely.
-
-## Keyboard shortcuts
-
-These work while Dooo has focus. The task shortcuts act on the task that has keyboard focus (press `Tab` to reach one).
-
-| Keys | What it does |
-| --- | --- |
-| `Ctrl+N` | New task (opens the add sheet) |
-| `Enter` | In the add/edit sheet: save. On a focused task: edit it |
-| `Esc` | Close the open ··· menu or the sheet; cancel a drag |
-| `Ctrl+Z` | Undo the last action while the Undo toast is showing (not while typing in a field) |
-| `Space` | On a focused task: complete it (or restore it in Done) |
-| `Delete` | On a focused task: delete it (with Undo) |
-| `Up` / `Down` | On a focused task: move focus to the previous or next task |
-| `Alt+Up` / `Alt+Down` | On a focused task in Home: move it up or down the list |
-
-## Your data
-
-- **Location:** `%APPDATA%\Dooo\` (paste it into the Explorer address bar). It holds:
-  - `tasks.json`: your tasks
-  - `settings.json`: your name, photo, Keep on top and Launch at startup
-  - `window-state.json`: the window position and size
-- Writes are atomic, and each file keeps a `.bak` copy of its previous good version. If a file is ever damaged, Dooo restores it from the backup.
-- **Development runs** (`npm start`) use `%APPDATA%\Dooo-dev\` instead, so they never touch your real tasks.
-- **Uninstalling keeps your data.** To wipe it, quit Dooo and delete the folder.
+Uninstall through Windows Settings > Apps. Uninstalling removes the startup entry and keeps your task data.
 
 ## Development
 
-Requirements: Windows 10/11 and Node.js 20+ (built with Node 24).
-
-| Command | What it does |
+| Command | Action |
 | --- | --- |
-| `npm install` | Installs the dependencies |
-| `npm start` | Runs Dooo from source |
-| `npm run test:unit` | Runs quick checks of the window-geometry and startup-entry code in plain Node (no window opens) |
-| `npm run test:e2e` | Runs the end-to-end test (see below) |
-| `npm run pack` | Builds the unpacked app in `dist\win-unpacked\`, without an installer |
-| `npm run dist` | Builds the installer, `dist\Dooo-Setup-1.0.0.exe` |
+| `npm start` | Run from source |
+| `npm run test:unit` | Check geometry, project isolation, migration, and startup integration |
+| `npm run test:e2e` | Test real Electron windows with disposable data |
+| `npm run start:server` | Run the PostgreSQL-backed cloud sync API |
+| `npm run test:cloud` | Test merge rules, authentication, offline replay and PostgreSQL sync |
+| `npm run test:cloud:e2e` | Test Electron → API → PostgreSQL and incoming cloud updates |
+| `npm run pack` | Build the unpacked app in `dist\win-unpacked\` |
+| `npm run dist` | Build the Windows installer |
 
-**End-to-end test.** `npm run test:e2e` launches the real app with a throwaway data folder (and Windows startup left alone) and drives it with Playwright: adding, reordering, completing and restoring tasks, dropping text, the Settings switches, the click-through safety net, resizing, and a close-and-relaunch check that everything was saved. Screenshots go to `test-results\`. A Dooo window opens while it runs, and the test exits with 0 on success.
+End-to-end tests cover the screen-edge dock, floating windows, expanded task entry, retained completed rows, animated state changes, concurrent project edits, independent dragging, minimize/restore/arrange, optional details, editing, resizing, text drop, settings, and restart persistence. Screenshots go to `test-results\`.
 
-**Environment variables**
+In development, F12 or Ctrl+Shift+I opens DevTools; Ctrl+R reloads the current card.
 
-- `DOOO_USER_DATA_DIR=<folder>`: keep all data in `<folder>` instead of `%APPDATA%\Dooo` (or `Dooo-dev`). Handy for trying things without touching your real tasks.
-- `DOOO_DISABLE_AUTOSTART=1`: never touch the Windows startup entry. Only packaged builds ever do, so `npm start` is already safe.
+## Your data
 
-Careful when you run the result of `npm run pack` (`dist\win-unpacked\Dooo.exe`): it is a packaged app, so unlike `npm start` it uses `%APPDATA%\Dooo` (your real data, if Dooo is installed) and registers launch at startup. Set both variables first.
+Tasks and projects sync to your private Railway service when cloud sync is configured. The desktop retains a durable local cache, so it works offline and retries automatically. Window positions and app preferences stay on this computer. Packaged builds use `%APPDATA%\Dooo\`; development uses `%APPDATA%\Dooo-dev\`.
 
-In `npm start` runs, `F12` (or `Ctrl+Shift+I`) opens DevTools and `Ctrl+R` reloads the page.
+- `tasks.json`: tasks, completion, project membership, and optional details.
+- `settings.json`: projects, each floating window's layout, the plus position, and application settings.
+- `window-state.json`: retained legacy single-window layout data.
+- `cloud.json`: the sync service URL and access key (encrypted with Windows protection on startup).
+- `cloud-state.json`: the last acknowledged cloud snapshot, used to merge offline changes safely.
+
+Writes are atomic and retain a `.bak` copy. Each renderer can save only its own project's tasks. The main process handles authenticated HTTPS sync; renderer web requests remain blocked and the access key is never exposed to a card. Check the Windows tray menu for cloud status or use **Sync now**.
+
+The server checks a revision before saving. Concurrent edits to different fields or tasks are merged, and unchanged local records adopt remote changes and deletions. For simultaneous edits to the same field, the pending local edit wins on retry. Changes made during a request are retained for the next sync. Existing task notes and review context are preserved.
+
+See [Cloud deployment and connection](docs/cloud.md) for Railway setup, connecting another computer, recovery, and integration-test commands. This deploys the cloud backend; the floating-window interface remains a native Windows app.
+
+Set `DOOO_USER_DATA_DIR=<folder>` for isolated data and `DOOO_DISABLE_AUTOSTART=1` to leave startup registration alone. Development runs already leave startup registration alone.
 
 ## Project layout
 
-| Path | What is in it |
+| Path | Contents |
 | --- | --- |
-| `src/main/` | The Electron main process: the widget window, tray icon, task and settings storage, launch at startup |
-| `src/preload/` | The sandboxed preload script that gives the page its small `window.dooo` API |
-| `src/renderer/` | The UI: `index.html`, `css/`, `js/` and the bundled font |
-| `src/assets/` | The app and tray icons used at run time |
-| `build/` | Installer resources: the app icon and the NSIS script that cleans up the startup entry on uninstall |
-| `tests/` | The end-to-end test (`e2e.js`) and the unit checks (`unit.js`) |
-| `docs/` | The README screenshot |
+| `src/main/` | Floating-window coordinator, scoped persistence, tray, startup |
+| `src/preload/` | Sandboxed renderer API |
+| `src/renderer/` | Project card, task dropdown, edge controls, styles, bundled font |
+| `src/server/` | Authenticated sync API and PostgreSQL persistence |
+| `src/shared/` | Workspace validation and three-way merge rules |
+| `src/assets/` | App and tray icons |
+| `build/` | Installer resources |
+| `tests/` | Unit and multi-window end-to-end checks |
 
 ## Credits
 
-- [Electron](https://www.electronjs.org) and [electron-builder](https://www.electron.build)
-- The [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans) font, under the SIL Open Font License 1.1 (see `src/renderer/vendor/fonts/OFL.txt`)
-- [Lucide](https://lucide.dev)-style icons (ISC License), a few of them drawn by hand in the same style
+[Electron](https://www.electronjs.org), [electron-builder](https://www.electron.build), [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans) (SIL Open Font License), and [Lucide](https://lucide.dev)-style icons (ISC License).

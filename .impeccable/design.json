@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T19:17:16.943Z",
+  "title": "Design System: Dooo",
+  "extensions": {
+    "colorMeta": {
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15% 0.0606 196.9)",
+          "oklch(26% 0.0606 196.9)",
+          "oklch(38% 0.0606 196.9)",
+          "oklch(49% 0.0606 196.9)",
+          "oklch(61% 0.0606 196.9)",
+          "oklch(72% 0.0606 196.9)",
+          "oklch(84% 0.0606 196.9)",
+          "oklch(95% 0.0606 196.9)"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger",
+        "tonalRamp": [
+          "oklch(15% 0.1735 19.8)",
+          "oklch(26% 0.1735 19.8)",
+          "oklch(38% 0.1735 19.8)",
+          "oklch(49% 0.1735 19.8)",
+          "oklch(61% 0.1735 19.8)",
+          "oklch(72% 0.1735 19.8)",
+          "oklch(84% 0.1735 19.8)",
+          "oklch(95% 0.1735 19.8)"
+        ]
+      },
+      "progress-track": {
+        "role": "neutral",
+        "displayName": "Progress Track",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(49% 0.0000 0.0)",
+          "oklch(61% 0.0000 0.0)",
+          "oklch(72% 0.0000 0.0)",
+          "oklch(84% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "ring-coral": {
+        "role": "secondary",
+        "displayName": "Ring Coral",
+        "tonalRamp": [
+          "oklch(15% 0.1590 31.6)",
+          "oklch(26% 0.1590 31.6)",
+          "oklch(38% 0.1590 31.6)",
+          "oklch(49% 0.1590 31.6)",
+          "oklch(61% 0.1590 31.6)",
+          "oklch(72% 0.1590 31.6)",
+          "oklch(84% 0.1590 31.6)",
+          "oklch(95% 0.1590 31.6)"
+        ]
+      },
+      "ring-teal": {
+        "role": "secondary",
+        "displayName": "Ring Teal",
+        "tonalRamp": [
+          "oklch(15% 0.0986 197.7)",
+          "oklch(26% 0.0986 197.7)",
+          "oklch(38% 0.0986 197.7)",
+          "oklch(49% 0.0986 197.7)",
+          "oklch(61% 0.0986 197.7)",
+          "oklch(72% 0.0986 197.7)",
+          "oklch(84% 0.0986 197.7)",
+          "oklch(95% 0.0986 197.7)"
+        ]
+      },
+      "ring-yellow": {
+        "role": "secondary",
+        "displayName": "Ring Yellow",
+        "tonalRamp": [
+          "oklch(15% 0.1513 86.4)",
+          "oklch(26% 0.1513 86.4)",
+          "oklch(38% 0.1513 86.4)",
+          "oklch(49% 0.1513 86.4)",
+          "oklch(61% 0.1513 86.4)",
+          "oklch(72% 0.1513 86.4)",
+          "oklch(84% 0.1513 86.4)",
+          "oklch(95% 0.1513 86.4)"
+        ]
+      },
+      "ring-blue": {
+        "role": "secondary",
+        "displayName": "Ring Blue",
+        "tonalRamp": [
+          "oklch(15% 0.1436 257.8)",
+          "oklch(26% 0.1436 257.8)",
+          "oklch(38% 0.1436 257.8)",
+          "oklch(49% 0.1436 257.8)",
+          "oklch(61% 0.1436 257.8)",
+          "oklch(72% 0.1436 257.8)",
+          "oklch(84% 0.1436 257.8)",
+          "oklch(95% 0.1436 257.8)"
+        ]
+      },
+      "ring-purple": {
+        "role": "secondary",
+        "displayName": "Ring Purple",
+        "tonalRamp": [
+          "oklch(15% 0.1179 298.9)",
+          "oklch(26% 0.1179 298.9)",
+          "oklch(38% 0.1179 298.9)",
+          "oklch(49% 0.1179 298.9)",
+          "oklch(61% 0.1179 298.9)",
+          "oklch(72% 0.1179 298.9)",
+          "oklch(84% 0.1179 298.9)",
+          "oklch(95% 0.1179 298.9)"
+        ]
+      },
+      "ring-green": {
+        "role": "secondary",
+        "displayName": "Ring Green",
+        "tonalRamp": [
+          "oklch(15% 0.0743 157.7)",
+          "oklch(26% 0.0743 157.7)",
+          "oklch(38% 0.0743 157.7)",
+          "oklch(49% 0.0743 157.7)",
+          "oklch(61% 0.0743 157.7)",
+          "oklch(72% 0.0743 157.7)",
+          "oklch(84% 0.0743 157.7)",
+          "oklch(95% 0.0743 157.7)"
+        ]
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-surface",
+        "value": "0 3px 0 var(--ink)",
+        "purpose": "Independent project cards, task menus, edge tab and control palette. Task rows and composer have no shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "native-expansion",
+        "value": "240ms quartic ease-out",
+        "purpose": "Resize the native project window downward; respect reduced motion."
+      },
+      {
+        "name": "dropdown-opacity",
+        "value": "180ms ease-out",
+        "purpose": "Reveal tasks within the same card."
+      },
+      {
+        "name": "dropdown-movement",
+        "value": "240ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "6px dropdown translation and chevron rotation."
+      },
+      {
+        "name": "progress",
+        "value": "360ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Animate real completion ratio changes."
+      },
+      {
+        "name": "check-draw",
+        "value": "220ms ease-out",
+        "purpose": "Draw the completion check."
+      },
+      {
+        "name": "check-pop",
+        "value": "300ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Scale check from 0.82 through 1.14 to 1 on completion."
+      },
+      {
+        "name": "strike",
+        "value": "220ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Grow the task title strike while the completed row remains in place."
+      },
+      {
+        "name": "minimize",
+        "value": "150ms ease-out",
+        "purpose": "Fade the project card before hiding its window."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "1ms",
+        "purpose": "CSS animations and transitions; native animation also respects the preference."
+      },
+      {
+        "name": "edge-peek",
+        "value": "260ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Reveal the draggable plus at either screen edge."
+      },
+      {
+        "name": "icon-tray",
+        "value": "280ms transform / 180ms opacity",
+        "purpose": "Slide the compact tray beside a stationary plus; delay native contraction by 200ms."
+      },
+      {
+        "name": "task-settle",
+        "value": "220ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Animate new rows and shifted positions without moving completed rows on completion."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Floating project card",
+      "kind": "card",
+      "refersTo": "floating-card",
+      "description": "Collapsed independent window surface. Header click expands this same card; drag moves its native window.",
+      "html": "<article class=\"ds-card\"><button class=\"ds-summary\" aria-expanded=\"false\"><span class=\"ds-copy\"><span class=\"ds-name\">Project</span><span class=\"ds-subtitle\">No tasks yet</span><span class=\"ds-count\">0 Tasks <span aria-hidden=\"true\">⌄</span></span></span><span class=\"ds-ring\" role=\"img\" aria-label=\"0% complete\"><svg viewBox=\"0 0 56 56\" aria-hidden=\"true\"><circle cx=\"28\" cy=\"28\" r=\"23\"/></svg><span>0%</span></span></button></article>",
+      "css": ".ds-card{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;overflow:hidden;border:1px solid var(--ink,#1e1e1e);border-radius:16px;background:var(--surface,#fff);box-shadow:0 3px 0 var(--ink,#1e1e1e);color:var(--text,#171717)}.ds-summary{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;display:flex;align-items:center;gap:16px;width:100%;height:102px;padding:16px 22px 16px 16px;border:0;background:none;color:inherit;text-align:left;cursor:grab}.ds-summary:active{cursor:grabbing}.ds-summary:focus-visible{outline:none;background:var(--focus-surface,#dedede);border-radius:14px}.ds-copy{flex:1;display:flex;flex-direction:column;min-width:0}.ds-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;font-weight:750;line-height:19px;letter-spacing:-.02em;overflow-wrap:anywhere}.ds-subtitle{margin-top:4px;font-size:11px;font-weight:600;line-height:16px;color:#505050}.ds-count{margin-top:3px;font-size:11px;font-weight:650;line-height:16px}.ds-ring{position:relative;display:grid;place-items:center;flex:none;width:56px;height:56px;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}.ds-ring svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#e3e3e3;stroke-width:6}"
+    },
+    {
+      "name": "Completed task row",
+      "kind": "custom",
+      "description": "Plain row within the expanded card; completing it leaves the row in place.",
+      "html": "<div class=\"ds-row\" role=\"listitem\" tabindex=\"0\"><span class=\"ds-title\">Completed task</span><button class=\"ds-check\" aria-label=\"Restore task\" aria-pressed=\"true\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.3\" aria-hidden=\"true\"><path d=\"m5 12 4 4L19 6\"/></svg></button></div>",
+      "css": ".ds-row{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;display:grid;grid-template-columns:minmax(0,1fr) 22px 24px;align-items:center;gap:6px;min-height:52px;padding:10px 0;border-bottom:1px solid #ededed}.ds-row:focus-visible{outline:none;background:var(--focus-surface,#dedede);border-radius:6px}.ds-title{font-size:12px;line-height:20px;font-weight:500;overflow-wrap:anywhere;color:#767676;background-image:linear-gradient(#808080,#808080);background-repeat:no-repeat;background-position:0 55%;background-size:100% 1px;box-decoration-break:clone}.ds-check{grid-column:3;display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid var(--complete,#1e1e1e);border-radius:50%;color:#fff;background:var(--complete,#1e1e1e);cursor:pointer}.ds-check:hover{border-color:var(--accent,#505050)}.ds-check:focus-visible{outline:none;background:var(--focus-surface,#dedede);}"
+    },
+    {
+      "name": "Task composer",
+      "kind": "input",
+      "refersTo": "composer",
+      "description": "Borderless bottom task entry with a soft filled background and a sliders icon for optional fields.",
+      "html": "<div class=\"ds-composer\"><textarea class=\"ds-input\" rows=\"1\" placeholder=\"Add a task…\" aria-label=\"Task\"></textarea><button class=\"ds-details\" aria-label=\"Task details\" title=\"Task details\" aria-expanded=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-sliders\"><path d=\"M4 7h8m4 0h4M4 17h3m4 0h9\"/><circle cx=\"14\" cy=\"7\" r=\"2\"/><circle cx=\"9\" cy=\"17\" r=\"2\"/></svg></button></div>",
+      "css": ".ds-composer{padding:8px 10px;border:0;border-radius:12px;background:var(--field,#f4f4f4)}.ds-input{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;display:block;min-width:0;width:100%;min-height:34px;max-height:94px;padding:7px 4px;border:0;border-radius:4px;resize:none;font-size:12px;line-height:20px;background:transparent;color:var(--text,#171717);caret-color:var(--accent,#505050)}.ds-input::placeholder{color:#636363;opacity:1}.ds-input:focus{outline:none}.ds-composer:focus-within{background:var(--field-active,#eeeeee)}.ds-details{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;min-height:26px;padding:3px 6px;border:0;border-radius:6px;background:none;color:#636363;font-size:11px;cursor:pointer}.ds-details:hover{color:var(--ink,#1e1e1e);background:#f0f0f0}.ds-details:focus-visible{outline:none;background:var(--focus-surface,#dedede);}.ds-details{display:grid;place-items:center;width:28px;height:28px;padding:0}.ds-details svg{width:16px;height:16px}"
+    },
+    {
+      "name": "Task submit",
+      "kind": "button",
+      "refersTo": "submit",
+      "description": "Compact solid action appears when the composer has text.",
+      "html": "<button class=\"ds-submit\" aria-label=\"Add task\" title=\"Add task\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-arrow-up\"><path d=\"M12 19V5m-6 6 6-6 6 6\"/></svg></button>",
+      "css": ".ds-submit{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;min-height:30px;padding:5px 10px;border:0;border-radius:7px;color:#fff;background:var(--ink,#1e1e1e);font-size:11px;cursor:pointer}.ds-submit:focus-visible{outline:none;background:var(--accent,#505050);color:#fff;}.ds-submit:disabled{opacity:.45;cursor:default}.ds-submit{display:grid;place-items:center;width:30px;height:30px;min-height:30px;padding:0;border-radius:8px}.ds-submit svg{width:16px;height:16px}"
+    },
+    {
+      "name": "Screen-edge plus",
+      "kind": "button",
+      "refersTo": "edge-toggle",
+      "description": "Draggable 44px handle. Snaps to either vertical edge; opening the compact icon tray preserves its screen anchor. Position persists.",
+      "html": "<div class=\"ds-edge-wrap\"><button class=\"ds-edge\" aria-label=\"Open project controls\" aria-expanded=\"false\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button></div>",
+      "css": ".ds-edge-wrap{position:relative;height:64px;overflow:hidden}.ds-edge{position:absolute;top:8px;right:0;display:grid;place-items:center;width:44px;height:44px;padding:0;background:var(--surface,#fff);color:var(--text,#171717);border:1px solid var(--ink,#1e1e1e);border-right:0;border-radius:14px 0 0 14px;box-shadow:0 3px 0 var(--ink,#1e1e1e);transform:translateX(8px);transition:transform 260ms cubic-bezier(.16,1,.3,1);cursor:grab}.ds-edge:hover,.ds-edge:focus-visible{transform:translateX(0)}.ds-edge:focus-visible{outline:none;background:var(--focus-surface,#dedede);}@media(prefers-reduced-motion:reduce){.ds-edge{transition-duration:1ms}}"
+    },
+    {
+      "name": "Control palette",
+      "kind": "custom",
+      "refersTo": "control-palette",
+      "description": "Compact icon tray, 180px wide, appearing beside the anchored plus. Name entry and settings are revealed only on request.",
+      "html": "<section class=\"ds-palette\" aria-label=\"Project controls\"><div class=\"ds-actions\"><button aria-label=\"New project\" title=\"New project\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-folder-plus\"><path d=\"M20 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z\"/><path d=\"M12 10v6m-3-3h6\"/></svg></button><button aria-label=\"Show projects\" title=\"Show projects\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-eye\"><path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button><button aria-label=\"Minimize all\" title=\"Minimize all\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-minus\"><path d=\"M5 12h14\"/></svg></button><button aria-label=\"Show all tasks\" title=\"Show all tasks\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-chevrons-down\"><path d=\"m7 5 5 5 5-5M7 13l5 5 5-5\"/></svg></button><button aria-label=\"Collapse all\" title=\"Collapse all\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-chevrons-up\"><path d=\"m7 11 5-5 5 5M7 19l5-5 5 5\"/></svg></button><button aria-label=\"Arrange projects\" title=\"Arrange projects\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-layout-grid\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/></svg></button></div><div class=\"ds-footer\"><button aria-label=\"Show project\" title=\"Project\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-folder\"><path d=\"M20 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z\"/></svg></button><button aria-label=\"Settings\" title=\"Settings\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\" class=\"icon icon-settings\"><path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg></button></div></section>",
+      "css": ".ds-palette{width:180px;box-sizing:border-box;padding:10px;background:#fff;border:1px solid #1e1e1e;border-radius:14px;box-shadow:0 3px 0 #1e1e1e}.ds-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.ds-palette button{display:grid;place-items:center;height:40px;border:0;border-radius:8px;background:none;color:#545454;cursor:pointer}.ds-palette button:hover{background:#f0f0f0;color:#1e1e1e}.ds-palette svg{width:19px;height:19px;stroke-width:1.65}.ds-footer{display:flex;justify-content:space-between;border-top:1px solid #e8e8e8;margin-top:8px;padding-top:8px}.ds-footer button{width:32px;height:32px}.ds-palette button:focus-visible{outline:none;background:var(--focus-surface,#dedede);}"
+    },
+    {
+      "name": "Optional priority",
+      "kind": "chip",
+      "description": "Small noninteractive tag shown only for an explicit task priority.",
+      "html": "<span class=\"ds-priority\">High</span>",
+      "css": ".ds-priority{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;display:inline-block;padding:0 5px;border-radius:4px;font-size:10px;font-weight:600;color:#a02c32;background:#ffedef}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Floating white project cards",
+    "overview": "The user's supplied reference remains the visual authority: white rounded cards, thin dark outlines, hard downward shadows, quiet subtitles and counts, and colored progress rings on the right. Each project is an independent transparent native window that can be dragged by its header. Clicking the header extends the same card downward to reveal its tasks.",
+    "keyCharacteristics": [
+      "Independent cards directly on the desktop.",
+      "One continuous white surface from project summary through tasks.",
+      "Restrained color, live progress and visible completion feedback."
+    ],
+    "rules": [
+      {
+        "name": "The Truthful Progress Rule",
+        "body": "Counts and percentages derive from real project tasks. Show completed divided by total, rounded to a whole percentage; an empty project shows zero percent and “No tasks yet.” Keep the gray ring track visible and hide the colored arc at zero.",
+        "section": "colors"
+      },
+      {
+        "name": "The Continuous Card Rule",
+        "body": "Preserve the project summary and dropdown as one white outlined silhouette. Do not introduce nested task cards or a surrounding dashboard.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve independent floating cards, the white outline-and-shadow silhouette and right-side rings.",
+      "Do keep completed tasks in place with clear check and strike feedback.",
+      "Do use real data, readable wrapped titles, visible focus and display-constrained sizing.",
+      "Use icon controls with accessible names and hover labels; reveal creation and settings only on request.",
+      "Keep the plus anchored while opening the tray; persist its dragged position."
+    ],
+    "donts": [
+      "Don't restore the shared overview, back navigation, Personal sections, greetings or bottom navigation.",
+      "Don't expose optional task details by default or put task rows in nested cards."
+    ]
+  }
+}

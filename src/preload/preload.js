@@ -20,6 +20,15 @@ const CH = {
 };
 
 contextBridge.exposeInMainWorld('dooo', {
+  desktop: (action, value) => ipcRenderer.invoke('dooo:desktop', action, value),
+  onDesktopChanged: callback => {
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('dooo:desktop-changed', listener);
+    return () => ipcRenderer.removeListener('dooo:desktop-changed', listener);
+  },
+  onDockOpen: callback => ipcRenderer.on('dooo:dock-open', (_event, value) => callback(value)),
+  onDockLayout: callback => ipcRenderer.on('dooo:dock-layout', (_event, value) => callback(value)),
+  onVisibility: callback => ipcRenderer.on('dooo:visibility', (_event, value) => callback(value)),
   /** @returns {Promise<{ tasks: object[], settings: object, version: string }>} */
   loadState: () => ipcRenderer.invoke(CH.loadState),
 
@@ -40,6 +49,8 @@ contextBridge.exposeInMainWorld('dooo', {
   },
 
   window: {
+    getBounds: () => ipcRenderer.invoke('dooo:window-get-bounds'),
+    move: (x, y) => ipcRenderer.send('dooo:window-move', Number(x), Number(y)),
     /** Hide to the tray. */
     hide: () => {
       ipcRenderer.send(CH.windowHide);

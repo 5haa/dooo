@@ -1,0 +1,79 @@
+'use strict';
+const http = require('node:http');
+const { createHash, timingSafeEqual } = require('node:crypto');
+const { Pool } = require('pg');
+const { EMPTY, validateState } = require('../shared/cloud-state');
+
+async function createServer({ databaseUrl, token, pool: suppliedPool }) {
+  if (!databaseUrl && !suppliedPool) throw new Error('DATABASE_URL is required');
+  if (typeof token !== 'string' || token.length < 32) throw new Error('DOOO_SYNC_TOKEN must have at least 32 characters');
+  const pool = suppliedPool || new Pool({ connectionString: databaseUrl, max: 5, connectionTimeoutMillis: 5000, statement_timeout: 5000 });
+  pool.on('error', () => console.error('[dooo-api] Database connection interrupted'));
+  await pool.query(`CREATE TABLE IF NOT EXISTS dooo_workspace (
+    id integer PRIMARY KEY CHECK (id = 1), revision integer NOT NULL DEFAULT 0,
+    data jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now()
+  )`);
+  await pool.query('INSERT INTO dooo_workspace (id, data) VALUES (1, $1) ON CONFLICT DO NOTHING', [JSON.stringify(EMPTY)]);
+  const digest = value => createHash('sha256').update(value).digest();
+  const expected = digest('Bearer ' + token);
+  const attempts = new Map();
+  function reply(res, status, body) {
+    res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'" });
+    res.end(JSON.stringify(body));
+  }
+  async function readState() {
+    const { rows } = await pool.query('SELECT revision, data, updated_at FROM dooo_workspace WHERE id = 1');
+    return { revision: rows[0].revision, data: rows[0].data, updatedAt: rows[0].updated_at };
+  }
+  const server = http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url, 'http://localhost');
+      if (req.method === 'GET' && url.pathname === '/health') {
+        await pool.query('SELECT 1'); reply(res, 200, { status: 'ok', database: 'connected' }); return;
+      }
+      if (req.method === 'GET' && url.pathname === '/') { reply(res, 200, { service: 'Dooo cloud sync', health: '/health' }); return; }
+      if (!timingSafeEqual(digest(req.headers.authorization || ''), expected)) {
+        const key = req.socket.remoteAddress, now = Date.now();
+        if (attempts.size > 5000) attempts.clear();
+        const previous = attempts.get(key), entry = previous && previous.until > now ? previous : { count: 0, until: now + 60000 };
+        entry.count++; attempts.set(key, entry);
+        reply(res, entry.count > 60 ? 429 : 401, { error: 'Authentication required' }); return;
+      }
+      if (url.pathname !== '/api/state') { reply(res, 404, { error: 'Not found' }); return; }
+      if (req.method === 'GET') { reply(res, 200, await readState()); return; }
+      if (req.method !== 'PUT') { reply(res, 405, { error: 'Method not allowed' }); return; }
+      if (!(req.headers['content-type'] || '').startsWith('application/json')) { reply(res, 415, { error: 'Expected JSON' }); return; }
+      const chunks = []; let size = 0;
+      for await (const chunk of req) {
+        size += chunk.length;
+        if (size > 5 * 1024 * 1024) { reply(res, 413, { error: 'Request is too large' }); return; }
+        chunks.push(chunk);
+      }
+      let input, data;
+      try {
+        input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        if (!input || !Number.isSafeInteger(input.revision) || input.revision < 0) throw new Error('Invalid revision');
+        data = validateState(input.data);
+      } catch { reply(res, 400, { error: 'Invalid workspace data' }); return; }
+      // A single conditional UPDATE is atomic: concurrent writers never silently replace
+      // each other. A stale client receives the latest document and merges before retrying.
+      const { rows } = await pool.query(`UPDATE dooo_workspace SET data = $1, revision = revision + 1, updated_at = now()
+        WHERE id = 1 AND revision = $2 RETURNING revision, data, updated_at`, [JSON.stringify(data), input.revision]);
+      if (!rows.length) { reply(res, 409, await readState()); return; }
+      reply(res, 200, { revision: rows[0].revision, data: rows[0].data, updatedAt: rows[0].updated_at });
+    } catch {
+      console.error('[dooo-api] Request failed');
+      if (!res.headersSent) reply(res, 503, { error: 'Service temporarily unavailable' }); else res.destroy();
+    }
+  });
+  server.requestTimeout = 15000; server.headersTimeout = 10000;
+  return { server, pool, close: async () => { await new Promise(resolve => server.close(resolve)); await pool.end(); } };
+}
+if (require.main === module) {
+  createServer({ databaseUrl: process.env.DATABASE_URL, token: process.env.DOOO_SYNC_TOKEN }).then(instance => {
+    instance.server.listen(Number(process.env.PORT || 8080), '0.0.0.0', () => console.log('[dooo-api] Listening'));
+    for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => instance.close().then(() => process.exit(0)));
+  }).catch(() => { console.error('[dooo-api] Startup failed; check database and sync token configuration'); process.exitCode = 1; });
+}
+module.exports = { createServer };
