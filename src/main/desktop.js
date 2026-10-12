@@ -239,6 +239,10 @@ class Desktop {
     return settings;
   }
   command(entry, action, value) {
+    if (action === 'pair-phone') {
+      if (entry !== this.dock || !this.options.onPairPhone) throw new Error('Open Settings in the project controls to connect a phone.');
+      return this.options.onPairPhone();
+    }
     if (action === 'link-folder' && entry.projectId) {
       return dialog.showOpenDialog(entry.win, { title: 'Link project folder', properties: ['openDirectory'],
         defaultPath: (this.store.getSettings().projectFolders || {})[entry.projectId]?.path || app.getPath('desktop')

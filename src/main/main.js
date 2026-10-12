@@ -14,6 +14,23 @@ const override = String(process.env.DOOO_USER_DATA_DIR || '').trim();
 const dataDir = override ? path.resolve(override) : isDev ? path.join(app.getPath('appData'), 'Dooo-dev') : null;
 if (dataDir) { fs.mkdirSync(dataDir, { recursive: true }); app.setPath('userData', dataDir); }
 let store, desktop, tray, cloud, cloudError, library, writer, pcWorker, pcLocked = false, quitting = false;
+let pairingPhone = false;
+async function showPhonePairing() {
+  if (pairingPhone) return;
+  pairingPhone = true;
+  try {
+    if (!pcWorker) {
+      await dialog.showMessageBox({ type: 'error', message: 'PC control is not configured', detail: 'Set up the PC connection for this Dooo installation before pairing a phone.' });
+      return;
+    }
+    const paired = await pcWorker.request('pair');
+    const result = await dialog.showMessageBox({ type: 'info', title: 'Connect your phone', message: paired.code.match(/.{1,4}/g).join(' '),
+      detail: 'Open ' + paired.url + ' on your phone and enter this code within 10 minutes. Add Dooo to your Home Screen, then enable notifications.\n\nScreens are shared only during requests. Ctrl+Alt+Esc pauses PC control.', buttons: ['Done', 'Open web app'], defaultId: 0 });
+    if (result.response === 1) await shell.openExternal(paired.url);
+  } catch {
+    await dialog.showMessageBox({ type: 'error', message: 'Could not create a phone code', detail: 'Check your internet connection and try again.' });
+  } finally { pairingPhone = false; }
+}
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.setAppUserModelId('com.5haa.dooo');
@@ -47,6 +64,7 @@ else {
       rewriteTask: (id, text) => writer ? writer.rewrite(id, text) : { error: 'unavailable' },
       discoverProject: id => { if (discover) library.ensure(id, { force: true }); },
       linkFolder: (id, folder) => library.ensure(id, { folder, force: true }),
+      onPairPhone: showPhonePairing,
       onSettings: settings => { if (tray) tray.refresh(); }
     });
     desktop.start();
@@ -79,14 +97,7 @@ else {
       onSync: () => { if (cloud) cloud.sync(); },
       getPCStatus: () => pcWorker ? { status: pcWorker.status, paused: pcWorker.paused } : null,
       onPCPause: value => pcWorker?.setPaused(value),
-      onPairPhone: async () => {
-        try {
-          const paired = await pcWorker.request('pair');
-          const result = await dialog.showMessageBox({ type: 'info', title: 'Connect your phone', message: paired.code.match(/.{1,4}/g).join(' '),
-            detail: 'Open ' + paired.url + ' on your phone and enter this code within 10 minutes. Add Dooo to your Home Screen, then enable notifications.\n\nScreens are shared only during requests. Ctrl+Alt+Esc pauses PC control.', buttons: ['Done', 'Open web app'], defaultId: 0 });
-          if (result.response === 1) await shell.openExternal(paired.url);
-        } catch { await dialog.showMessageBox({ type: 'error', message: 'Could not create a phone code', detail: 'Check your internet connection and try again.' }); }
-      },
+      onPairPhone: showPhonePairing,
       onRevokePhones: async () => { try { await pcWorker.request('revoke-phones'); } catch {} },
       onToggle: (key, value) => desktop.updateSettings({ [key]: value }), onQuit: () => app.quit()
     });

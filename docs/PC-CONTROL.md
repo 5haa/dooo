@@ -4,7 +4,7 @@ Dooo can control an awake, unlocked Windows PC using UI-TARS 1.5 7B through Open
 
 ## Connect your phone
 
-1. On the PC, open Dooo's system-tray menu and choose **Connect phone**.
+1. On the PC, open Dooo's floating **+ → Settings → phone icon** to generate a fresh pairing code. **Connect phone** in the system-tray menu does the same thing. Reopen it whenever a code expires.
 2. Open your Dooo service URL on the phone and enter the one-time code. It expires after ten minutes.
 3. Install the web app using the browser menu. On iPhone, use **Share → Add to Home Screen**, then launch it from the Home Screen.
 4. Tap the bell to enable approval notifications. The operating system must grant permission; notification delivery also depends on the phone's network and notification settings.
