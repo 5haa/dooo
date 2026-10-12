@@ -5,8 +5,10 @@ const { Pool } = require('pg');
 const { EMPTY, validateState } = require('../shared/cloud-state');
 const { rewriteTask, validInput, MODEL, AIError } = require('./task-ai');
 const { handleAgent, AgentError } = require('./agent-api');
+const { createControl } = require('./control-api');
+const { serveWeb } = require('./web');
 
-async function createServer({ databaseUrl, token, pool: suppliedPool, openrouterKey, model = MODEL, aiFetch, agentToken }) {
+async function createServer({ databaseUrl, token, pool: suppliedPool, openrouterKey, model = MODEL, aiFetch, agentToken, workerToken, origin, vapid, pushImpl, modelFetch }) {
   if (!databaseUrl && !suppliedPool) throw new Error('DATABASE_URL is required');
   if (typeof token !== 'string' || token.length < 32) throw new Error('DOOO_SYNC_TOKEN must have at least 32 characters');
   const pool = suppliedPool || new Pool({ connectionString: databaseUrl, max: 5, connectionTimeoutMillis: 5000, statement_timeout: 5000 });
@@ -20,6 +22,8 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
   const expected = digest('Bearer ' + token);
   if (agentToken && (agentToken.length < 32 || agentToken === token)) throw new Error('Use a separate agent token of at least 32 characters');
   const agentExpected = agentToken ? digest('Bearer ' + agentToken) : null;
+  if (workerToken && [token, agentToken].includes(workerToken)) throw new Error('Use a separate worker key');
+  const control = await createControl({ pool, workerToken, origin, openrouterKey, vapid, pushImpl, modelFetch });
   const attempts = new Map();
   let aiActive = 0, aiRequests = [];
   function reply(res, status, body) {
@@ -37,6 +41,8 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
       if (req.method === 'GET' && url.pathname === '/health') {
         await pool.query('SELECT 1'); reply(res, 200, { status: 'ok', database: 'connected' }); return;
       }
+      if (control && await control.handle(req, res, url)) return;
+      if (serveWeb(req, res, url)) return;
       if (req.method === 'GET' && url.pathname === '/') { reply(res, 200, { service: 'Dooo cloud sync', health: '/health' }); return; }
       const agentRoute = url.pathname === '/api/agent', required = agentRoute ? agentExpected : expected;
       if (!required || !timingSafeEqual(digest(req.headers.authorization || ''), required)) {
@@ -53,8 +59,8 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
         for await (const chunk of req) { size += chunk.length; if (size > 64000) { reply(res, 413, { error: 'Request is too large' }); return; } chunks.push(chunk); }
         let input;
         try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { reply(res, 400, { error: 'Invalid JSON' }); return; }
-        try { reply(res, 200, await handleAgent(pool, input)); }
-        catch (error) { if (error instanceof AgentError) reply(res, error.status, { error: error.message }); else throw error; }
+        try { reply(res, 200, control && ['computer_status', 'run_computer', 'get_computer_run', 'stop_computer'].includes(input.action) ? await control.agent(input) : await handleAgent(pool, input)); }
+        catch (error) { if (error instanceof AgentError || Number.isInteger(error.status)) reply(res, error.status, { error: error.message }); else throw error; }
         return;
       }
       if (url.pathname === '/api/ai/rewrite') {
@@ -119,7 +125,9 @@ async function createServer({ databaseUrl, token, pool: suppliedPool, openrouter
 }
 if (require.main === module) {
   createServer({ databaseUrl: process.env.DATABASE_URL, token: process.env.DOOO_SYNC_TOKEN,
-    openrouterKey: process.env.OPENROUTER_API_KEY, model: process.env.OPENROUTER_MODEL || MODEL, agentToken: process.env.DOOO_AGENT_TOKEN }).then(instance => {
+    openrouterKey: process.env.OPENROUTER_API_KEY, model: process.env.OPENROUTER_MODEL || MODEL, agentToken: process.env.DOOO_AGENT_TOKEN,
+    workerToken: process.env.DOOO_WORKER_TOKEN, origin: process.env.DOOO_PUBLIC_ORIGIN,
+    vapid: process.env.DOOO_VAPID_PRIVATE_KEY ? { publicKey: process.env.DOOO_VAPID_PUBLIC_KEY, privateKey: process.env.DOOO_VAPID_PRIVATE_KEY } : undefined }).then(instance => {
     instance.server.listen(Number(process.env.PORT || 8080), '0.0.0.0', () => console.log('[dooo-api] Listening'));
     for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => instance.close().then(() => process.exit(0)));
   }).catch(() => { console.error('[dooo-api] Startup failed; check database and sync token configuration'); process.exitCode = 1; });

@@ -43,7 +43,7 @@ function loadTrayImage(assetsDir) {
  *   onQuit()             really quit
  * Returns { tray, source, refresh(), destroy() }.
  */
-function createTray({ assetsDir, getSettings, onShow, onToggle, onQuit, getSyncStatus = () => null, onSync = () => {} }) {
+function createTray({ assetsDir, getSettings, onShow, onToggle, onQuit, getSyncStatus = () => null, onSync = () => {}, getPCStatus = () => null, onPCPause = () => {}, onPairPhone = () => {}, onRevokePhones = () => {} }) {
   const { image, source } = loadTrayImage(assetsDir);
   const tray = new Tray(image);
   tray.setToolTip('Dooo');
@@ -53,11 +53,15 @@ function createTray({ assetsDir, getSettings, onShow, onToggle, onQuit, getSyncS
     if (tray.isDestroyed()) return;
     const settings = getSettings();
     const sync = getSyncStatus();
+    const pc = getPCStatus();
     const labels = { synced: 'Synced', syncing: 'Syncing…', pending: 'Changes waiting to sync', offline: 'Offline — changes saved locally', unauthorized: 'Sign-in key needs attention', 'configuration-error': 'Connection needs attention' };
     tray.setContextMenu(
       Menu.buildFromTemplate([
         { label: 'Show Dooo', click: () => onShow() },
         ...(sync ? [{ label: 'Cloud: ' + (labels[sync.state] || sync.state), enabled: false }, { label: 'Sync now', click: onSync }, { type: 'separator' }] : []),
+        ...(pc ? [{ label: 'PC control: ' + pc.status, enabled: false }, { label: 'Connect phone…', click: onPairPhone },
+          { label: 'Pause PC control', type: 'checkbox', checked: pc.paused, click: item => onPCPause(item.checked) },
+          { label: 'Disconnect all phones', click: onRevokePhones }, { type: 'separator' }] : []),
         {
           label: 'Keep on top',
           type: 'checkbox',

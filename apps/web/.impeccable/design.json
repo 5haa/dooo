@@ -1,0 +1,453 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T21:09:00.186Z",
+  "title": "Design System: Dooo Phone",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Text ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "control": {
+        "role": "primary",
+        "displayName": "Control ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "control-hover": {
+        "role": "primary",
+        "displayName": "Control ink hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "outline": {
+        "role": "neutral",
+        "displayName": "Fine dark edge",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Quiet canvas",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Supporting gray",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "completed": {
+        "role": "neutral",
+        "displayName": "Completion gray",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Filled field",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "field-active": {
+        "role": "neutral",
+        "displayName": "Active field",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "quiet": {
+        "role": "neutral",
+        "displayName": "Quiet control",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "separator": {
+        "role": "neutral",
+        "displayName": "Task separator",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "ring-track": {
+        "role": "neutral",
+        "displayName": "Progress track",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "Keyboard focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "ring-coral": {
+        "role": "primary",
+        "displayName": "Project coral",
+        "tonalRamp": [
+          "oklch(15.00% 0.16628 31.42)",
+          "oklch(26.43% 0.16628 31.42)",
+          "oklch(37.86% 0.16628 31.42)",
+          "oklch(49.29% 0.16628 31.42)",
+          "oklch(60.71% 0.16628 31.42)",
+          "oklch(72.14% 0.16628 31.42)",
+          "oklch(83.57% 0.16628 31.42)",
+          "oklch(95.00% 0.16628 31.42)"
+        ]
+      },
+      "ring-teal": {
+        "role": "primary",
+        "displayName": "Project teal",
+        "tonalRamp": [
+          "oklch(15.00% 0.09044 198.86)",
+          "oklch(26.43% 0.09044 198.86)",
+          "oklch(37.86% 0.09044 198.86)",
+          "oklch(49.29% 0.09044 198.86)",
+          "oklch(60.71% 0.09044 198.86)",
+          "oklch(72.14% 0.09044 198.86)",
+          "oklch(83.57% 0.09044 198.86)",
+          "oklch(95.00% 0.09044 198.86)"
+        ]
+      },
+      "ring-yellow": {
+        "role": "primary",
+        "displayName": "Project ochre",
+        "tonalRamp": [
+          "oklch(15.00% 0.12648 74.84)",
+          "oklch(26.43% 0.12648 74.84)",
+          "oklch(37.86% 0.12648 74.84)",
+          "oklch(49.29% 0.12648 74.84)",
+          "oklch(60.71% 0.12648 74.84)",
+          "oklch(72.14% 0.12648 74.84)",
+          "oklch(83.57% 0.12648 74.84)",
+          "oklch(95.00% 0.12648 74.84)"
+        ]
+      },
+      "ring-blue": {
+        "role": "primary",
+        "displayName": "Project blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.15091 259.76)",
+          "oklch(26.43% 0.15091 259.76)",
+          "oklch(37.86% 0.15091 259.76)",
+          "oklch(49.29% 0.15091 259.76)",
+          "oklch(60.71% 0.15091 259.76)",
+          "oklch(72.14% 0.15091 259.76)",
+          "oklch(83.57% 0.15091 259.76)",
+          "oklch(95.00% 0.15091 259.76)"
+        ]
+      },
+      "ring-purple": {
+        "role": "primary",
+        "displayName": "Project purple",
+        "tonalRamp": [
+          "oklch(15.00% 0.15239 296.75)",
+          "oklch(26.43% 0.15239 296.75)",
+          "oklch(37.86% 0.15239 296.75)",
+          "oklch(49.29% 0.15239 296.75)",
+          "oklch(60.71% 0.15239 296.75)",
+          "oklch(72.14% 0.15239 296.75)",
+          "oklch(83.57% 0.15239 296.75)",
+          "oklch(95.00% 0.15239 296.75)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Section heading",
+        "purpose": "The current workspace view."
+      },
+      "title": {
+        "displayName": "Project title",
+        "purpose": "Project names and run titles."
+      },
+      "body": {
+        "displayName": "Task and action text",
+        "purpose": "Readable wrapping content."
+      },
+      "input": {
+        "displayName": "Input text",
+        "purpose": "Task and PC request entry."
+      },
+      "label": {
+        "displayName": "Supporting copy",
+        "purpose": "Counts, device state and help."
+      },
+      "navigation": {
+        "displayName": "Top navigation",
+        "purpose": "Projects and Computer selection."
+      }
+    },
+    "shadows": [
+      {
+        "name": "hard-card",
+        "value": "0 3px 0 #242424",
+        "purpose": "The incumbent structural shadow on project and approval cards."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Shared state-transition curve."
+      },
+      {
+        "name": "control-feedback",
+        "value": "160ms",
+        "purpose": "Icon background and pressed transform feedback."
+      },
+      {
+        "name": "expansion-chevron",
+        "value": "200ms",
+        "purpose": "Chevron rotation when a project expands."
+      },
+      {
+        "name": "project-reveal",
+        "value": "230ms",
+        "purpose": "Clip and opacity reveal inside the existing card."
+      },
+      {
+        "name": "progress-update",
+        "value": "400ms",
+        "purpose": "The ring follows changed task completion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Solid action",
+      "kind": "button",
+      "refersTo": "button-solid",
+      "description": "The affirmative action, using the same ink as selected navigation.",
+      "html": "<button class=\"ds-solid\">Allow this action</button>",
+      "css": ".ds-solid{font-family:Jakarta,'Segoe UI',sans-serif;font-size:12px;font-weight:650;min-height:44px;padding:11px 16px;background:#242424;color:#fff;border:0;border-radius:10px;cursor:pointer}.ds-solid:hover{background:#414141}.ds-solid:active{transform:scale(.95)}.ds-solid:focus-visible{outline:2px solid #505050;outline-offset:3px}.ds-solid:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Quiet action",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "A clear alternative beside the affirmative action.",
+      "html": "<button class=\"ds-quiet\">Don't allow</button>",
+      "css": ".ds-quiet{font-family:Jakarta,'Segoe UI',sans-serif;font-size:12px;min-height:44px;padding:10px 14px;background:#ededed;color:#1e1e1e;border:0;border-radius:10px;cursor:pointer}.ds-quiet:hover{background:#e7e7e7}.ds-quiet:focus-visible{outline:2px solid #505050;outline-offset:3px}.ds-quiet:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Icon action",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "A named SVG action used in the topbar and section headings.",
+      "html": "<button class=\"ds-icon-action\" aria-label=\"New project\" title=\"New project\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
+      "css": ".ds-icon-action{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:none;color:#1e1e1e;border:0;border-radius:10px;cursor:pointer;transition:background 160ms cubic-bezier(.16,1,.3,1),transform 160ms cubic-bezier(.16,1,.3,1)}.ds-icon-action:hover{background:#e7e7e7}.ds-icon-action:active{transform:scale(.95)}.ds-icon-action:focus-visible{outline:2px solid #505050;outline-offset:3px}.ds-icon-action:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-icon-action{transition:none}}"
+    },
+    {
+      "name": "Task composer",
+      "kind": "input",
+      "refersTo": "task-composer",
+      "description": "Borderless task entry, placed beneath a project's task rows.",
+      "html": "<form class=\"ds-composer\"><input class=\"ds-composer-input\" aria-label=\"Add a task\" placeholder=\"Add a task…\" required/><button class=\"ds-composer-submit\" type=\"button\" aria-label=\"Add task\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 19V5m-6 6 6-6 6 6\"/></svg></button></form>",
+      "css": ".ds-composer{display:flex;align-items:center;gap:4px;background:var(--field,#f0f0f0);padding:4px 5px 4px 12px;border-radius:12px}.ds-composer:focus-within{background:#e7e7e7}.ds-composer-input{font-family:Jakarta,'Segoe UI',sans-serif;font-size:14px;flex:1;width:0;min-height:40px;padding:8px 0;background:transparent;color:#1e1e1e;border:0;outline:0}.ds-composer-input::placeholder{color:#686868}.ds-composer-submit{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;background:none;color:#1e1e1e;border:0;border-radius:10px;cursor:pointer}.ds-composer-submit:hover{background:#e7e7e7}.ds-composer-submit:active{transform:scale(.95)}.ds-composer-submit:focus-visible{outline:2px solid #505050;outline-offset:3px}.ds-composer-submit:disabled{opacity:.45;cursor:default}@media(forced-colors:active){.ds-composer-input,.ds-composer-submit{border:1px solid ButtonText}}"
+    },
+    {
+      "name": "Top workspace tabs",
+      "kind": "nav",
+      "refersTo": "navigation-selected",
+      "description": "Projects and Computer remain above the content, with explicit selection.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Workspace\"><button class=\"ds-tab ds-tab-selected\" aria-pressed=\"true\">Projects</button><button class=\"ds-tab\" aria-pressed=\"false\">Computer</button></nav>",
+      "css": ".ds-tabs{display:flex;gap:6px}.ds-tab{font-family:Jakarta,'Segoe UI',sans-serif;font-size:13px;font-weight:650;position:relative;padding:10px 16px;min-height:44px;border:0;border-radius:10px;background:none;color:var(--muted,#656565);cursor:pointer}.ds-tab-selected{background:#242424;color:#fff}.ds-tab:focus-visible{outline:2px solid #505050;outline-offset:3px}"
+    },
+    {
+      "name": "Continuous project card",
+      "kind": "card",
+      "refersTo": "project-card",
+      "description": "The white silhouette shared by a project header and its expanded content.",
+      "html": "<article class=\"ds-project\"><button class=\"ds-project-head\" aria-expanded=\"false\"><span class=\"ds-project-copy\"><span class=\"ds-project-title\">Project</span><span class=\"ds-project-sub\">No tasks yet</span></span><span class=\"ds-project-ring\" aria-hidden=\"true\"><svg viewBox=\"0 0 56 56\"><circle cx=\"28\" cy=\"28\" r=\"23\"/></svg><b>0%</b></span></button></article>",
+      "css": ".ds-project{background:#fff;color:#1e1e1e;border:1px solid #292929;border-radius:16px;box-shadow:0 3px 0 #242424;overflow:hidden}.ds-project-head{font-family:Jakarta,'Segoe UI',sans-serif;display:flex;align-items:center;width:100%;text-align:left;padding:20px;gap:16px;min-height:100px;border:0;background:none;color:inherit;cursor:pointer}.ds-project-copy{flex:1;min-width:0}.ds-project-title{display:block;font-size:15px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}.ds-project-sub{display:block;font-size:12px;color:var(--muted,#656565);margin-top:6px}.ds-project-ring{width:52px;height:52px;flex:none;position:relative}.ds-project-ring svg{width:100%;height:100%}.ds-project-ring circle{fill:none;stroke:#e4e4e4;stroke-width:5}.ds-project-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-variant-numeric:tabular-nums}.ds-project-head:focus-visible{outline:2px solid #505050;outline-offset:3px}"
+    },
+    {
+      "name": "Truthful progress ring",
+      "kind": "custom",
+      "description": "Actual completion on a gray track; the colored arc is hidden at zero.",
+      "html": "<div class=\"ds-ring\" data-progress=\"50\" aria-label=\"50 percent completed\"><svg viewBox=\"0 0 56 56\" aria-hidden=\"true\"><circle cx=\"28\" cy=\"28\" r=\"23\"/><circle class=\"ds-ring-arc\" cx=\"28\" cy=\"28\" r=\"23\" stroke-dasharray=\"72.25 144.5\"/></svg><b>50%</b></div>",
+      "css": ".ds-ring{font-family:Jakarta,'Segoe UI',sans-serif;width:52px;height:52px;position:relative;color:#1e1e1e}.ds-ring svg{width:100%;height:100%;transform:rotate(-90deg)}.ds-ring circle{fill:none;stroke:#e4e4e4;stroke-width:5}.ds-ring .ds-ring-arc{stroke:var(--ring,#db5a45);stroke-linecap:round;transition:stroke-dasharray 400ms cubic-bezier(.16,1,.3,1)}.ds-ring[data-progress=\"0\"] .ds-ring-arc{visibility:hidden}.ds-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-variant-numeric:tabular-nums}@media(prefers-reduced-motion:reduce){.ds-ring .ds-ring-arc{transition:none}}"
+    },
+    {
+      "name": "Completed task row",
+      "kind": "custom",
+      "description": "Completed work remains visible below unfinished tasks, with a check and strike.",
+      "html": "<div class=\"ds-task\"><span class=\"ds-task-title\">Reviewed task</span><button class=\"ds-task-check\" aria-label=\"Reopen task\" title=\"Reopen task\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12 4 4L19 6\"/></svg></button></div>",
+      "css": ".ds-task{font-family:Jakarta,'Segoe UI',sans-serif;display:flex;align-items:center;gap:5px;min-height:58px;border-top:1px solid #e8e8e8;padding:7px 0 7px 8px;background:#fff}.ds-task-title{flex:1;font-size:13px;line-height:1.65;overflow-wrap:anywhere;min-width:0;color:#757575;text-decoration:line-through;text-decoration-thickness:1px}.ds-task-check{border:1px solid #242424;border-radius:50%;width:24px;height:24px;margin:10px;display:grid;place-items:center;padding:0;flex:none;background:#242424;color:white;cursor:pointer}.ds-task-check:focus-visible{outline:2px solid #505050;outline-offset:3px}.ds-task-check:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Concrete action approval",
+      "kind": "card",
+      "refersTo": "approval-panel",
+      "description": "An action-specific decision immediately after the observed screen.",
+      "html": "<section class=\"ds-approval\"><h2>Your approval</h2><p>Click at the indicated position.</p><p class=\"ds-approval-help\">Check the screen above. Allow only the action you intended.</p><div class=\"ds-approval-actions\"><button class=\"ds-approval-deny\">Don't allow</button><button class=\"ds-approval-allow\">Allow this action</button></div></section>",
+      "css": ".ds-approval{font-family:Jakarta,'Segoe UI',sans-serif;padding:18px;background:#fff;color:#1e1e1e;border-radius:14px;border:1px solid #292929;box-shadow:0 3px 0 #242424}.ds-approval h2{margin:0 0 10px;font-size:14px;font-weight:750}.ds-approval p{margin:0;font-size:13px;line-height:1.65;overflow-wrap:anywhere}.ds-approval .ds-approval-help{font-size:12px;color:var(--muted,#656565);margin-top:12px}.ds-approval-actions{display:flex;gap:8px;margin-top:16px}.ds-approval-actions button{font-family:Jakarta,'Segoe UI',sans-serif;flex:1;border:0;border-radius:10px;min-height:44px;font-size:12px;cursor:pointer}.ds-approval-deny{background:#ededed;color:#1e1e1e;padding:10px 14px}.ds-approval-deny:hover{background:#e7e7e7}.ds-approval-allow{background:#242424;color:#fff;padding:11px 16px;font-weight:650}.ds-approval-allow:hover{background:#414141}.ds-approval-allow:active{transform:scale(.95)}.ds-approval-actions button:focus-visible{outline:2px solid #505050;outline-offset:3px}.ds-approval-actions button:disabled{opacity:.45;cursor:default}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Floating white project cards",
+    "overview": "The phone workspace extends the incumbent Dooo world: continuous white project cards, fine dark edges, hard downward shadows, neutral filled inputs and colored progress rings. It retains the familiar card silhouette while placing it in a single scrolling column on a quiet gray canvas.\n\nThis is an operating interface. Project content and the next concrete action carry the hierarchy. The Computer view uses the same card material for approvals, with the observed PC screen directly above the decision. Color stays sparse; wording distinguishes work in progress, an action awaiting approval and a result awaiting human review.",
+    "keyCharacteristics": [
+      "Continuous white cards with a fine dark edge and a hard downward shadow.",
+      "Compact Jakarta typography, wrapping task content and neutral borderless composers.",
+      "Truthful colored progress rings and visible completed tasks.",
+      "Top navigation and a screen-before-approval sequence."
+    ],
+    "rules": [
+      {
+        "name": "The Truthful Progress Rule",
+        "body": "Derive completion counts and rounded percentages from actual tasks. An empty project shows zero percent and “No tasks yet.” At zero, render the gray track and hide the colored arc entirely, including its rounded cap.",
+        "section": "colors"
+      },
+      {
+        "name": "The Content First Rule",
+        "body": "Keep the user's project names, task wording, action descriptions and observed run state readable. Use compact icon actions with accessible names; do not replace content with decorative labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Continuous Card Rule",
+        "body": "Keep each project header, task list and composer inside one outlined white silhouette. Use separators between tasks, not nested task cards.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** preserve continuous white cards, fine dark edges, hard downward shadows and right-aligned progress rings.",
+      "**Do** retain readable wrapped content, neutral filled composers and visible focus states.",
+      "**Do** keep completed tasks visible at the bottom and show only progress derived from real tasks.",
+      "**Do** place the observed PC screen before the explicit action approval and keep completion review distinct from execution.",
+      "**Do** keep the shared bundled font and incumbent icon asset provenance when producing install assets."
+    ],
+    "donts": [
+      "**Don't** show a colored arc or round cap when project progress is zero.",
+      "**Don't** add bottom navigation, greetings or nested task cards to this workspace.",
+      "**Don't** imply that task entry starts PC work, that a sleeping or locked PC is controllable, or that model completion marks a task done.",
+      "**Don't** promise notifications before browser support, installation, permission and push configuration are available."
+    ]
+  }
+}

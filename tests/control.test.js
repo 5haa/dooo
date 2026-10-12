@@ -1,0 +1,65 @@
+'use strict';
+const { test } = require('node:test'), assert = require('node:assert/strict');
+const { randomUUID } = require('node:crypto');
+const { validateAction, screenChanged, actionHash } = require('../apps/worker/policy');
+const { fixture, until, delay } = require('./control-fixture');
+test('only observational actions bypass approval; invalid and off-screen actions are rejected', () => {
+  assert.equal(validateAction({ action_type: 'scroll', action_inputs: { direction: 'down' } }).requiresApproval, false);
+  for (const parsed of [{ action_type: 'click', action_inputs: { start_box: '[0.5,0.5]' } }, { action_type: 'type', action_inputs: { content: 'hello\n' } }, { action_type: 'hotkey', action_inputs: { key: 'enter' } }]) assert(validateAction(parsed).requiresApproval);
+  assert.throws(() => validateAction({ action_type: 'shell', action_inputs: {} }));
+  assert.throws(() => validateAction({ action_type: 'click', action_inputs: { start_box: '[1.5,0.5]' } }));
+  const pixels = Buffer.alloc(64*36*4, 255); assert(!screenChanged(pixels, pixels)); assert(screenChanged(pixels, Buffer.alloc(pixels.length)));
+  assert.equal(actionHash({ action_type:'click', action_inputs:{ start_box:'[0.5,0.5]' } }), actionHash({ action_inputs:{ start_box:'[0.5,0.5]' }, action_type:'click' }), 'JSONB key ordering cannot invalidate approval');
+});
+test('paired phone → real UI-TARS SDK → approved worker action, verification review and notification', { skip: !process.env.DOOO_TEST_DATABASE_URL }, async t => {
+  const f = await fixture(process.env.DOOO_TEST_DATABASE_URL); t.after(() => f.close());
+  assert.equal((await f.request('/api/mobile/state', undefined, { noCookie: true })).status, 401);
+  const { code } = await f.pair(); assert.equal((await f.request('/api/mobile/pair', { code }, { noCookie: true })).status, 401, 'Pairing code is single-use');
+  assert.equal((await f.request('/api/mobile/run', {}, { originOverride: 'https://evil.example' })).status, 403);
+  await f.request('/api/mobile/push', { endpoint: 'https://fcm.googleapis.com/fcm/send/test', keys: { auth: 'a'.repeat(22), p256dh: 'b'.repeat(87) } });
+  assert.equal((await f.request('/api/mobile/push', { endpoint: 'http://127.0.0.1/secret', keys: {} })).status, 400);
+  const requestId=randomUUID(), payload={ requestId, deviceId:f.deviceId, instruction:'Click the test screen target', taskId:'fixture-task' };
+  const initial=await f.request('/api/mobile/run',payload);assert.equal(initial.status,200);const id=initial.data.run.id;
+  assert.equal((await f.request('/api/mobile/run',payload)).data.run.id,id,'Retry cannot create duplicate run');
+  assert.equal((await f.request('/api/mobile/run',{...payload,requestId:randomUUID()})).status,409,'PC runs are exclusive');
+  const approval=await until(async()=> (await f.request('/api/mobile/run/'+id)).data.approval,'Approval missing',25000);
+  assert.equal(f.executed.length,0,'No OS action before approval');
+  await until(()=>f.notifications.some(n=>/approval/i.test(n.body)),'Approval notification missing');
+  assert.equal((await f.request('/api/mobile/approval/'+approval.id,{allow:true})).status,200);
+  assert.equal((await f.request('/api/mobile/approval/'+approval.id,{allow:true})).status,409,'Approval cannot be replayed');
+  await until(async()=> (await f.request('/api/mobile/run/'+id)).data.run.status==='review','Finished result not available',25000);
+  const { Client } = require('@modelcontextprotocol/client'), { StdioClientTransport } = require('@modelcontextprotocol/client/stdio');
+  const client = new Client({name:'Computer verification test',version:'1.0.0'});
+  await client.connect(new StdioClientTransport({command:process.execPath,args:[require('path').resolve('src/agents/mcp.js')],env:{...process.env,DOOO_AGENT_URL:f.origin,DOOO_AGENT_TOKEN:f.agentToken},stderr:'pipe'}));
+  try { const proof=await client.callTool({name:'get_computer_run',arguments:{runId:id,includeScreen:true}});assert(!proof.isError);assert(proof.content.some(c=>c.type==='image'&&c.mimeType==='image/jpeg'));assert(!proof.structuredContent.screen.data,'Pixels are image content, not token-heavy JSON'); } finally { await client.close(); }
+  assert.equal(f.executed.length,1);let state=(await f.request('/api/mobile/state')).data;assert(!state.tasks[0].done,'Model finishing is not verification');
+  await f.request('/api/mobile/run/'+id+'/complete',{});state=(await f.request('/api/mobile/state')).data;assert(state.tasks[0].done,'Only explicit human review marks done');
+  f.resetModel(); const stopped=await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'Another test click'});const stopId=stopped.data.run.id;
+  const pending=await until(async()=> (await f.request('/api/mobile/run/'+stopId)).data.approval,'Second approval missing',25000);
+  await f.request('/api/mobile/run/'+stopId+'/stop',{});
+  assert.equal((await f.request('/api/mobile/approval/'+pending.id,{allow:true})).status,409);
+  await delay(1500);assert.equal(f.executed.length,1,'Stop prevents pending actions');
+  const taskRequest=randomUUID();await f.request('/api/mobile/task',{requestId:taskRequest,projectId:'personal',title:'Added on phone'});await f.request('/api/mobile/task',{requestId:taskRequest,projectId:'personal',title:'Added on phone'});
+  assert.equal((await f.request('/api/mobile/state')).data.tasks.filter(t=>t.id===taskRequest).length,1);
+  // Pausing on Windows cancels an outstanding action and releases its task claim.
+  f.resetModel(); const locked=await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'Test lock handling'});
+  await until(async()=> (await f.request('/api/mobile/run/'+locked.data.run.id)).data.approval,'Lock approval missing',25000);
+  f.worker.setPaused(true);
+  await until(async()=> ['blocked','cancelled'].includes((await f.request('/api/mobile/run/'+locked.data.run.id)).data.run.status),'Lock did not stop request');
+  assert.equal(f.executed.length,1); assert.equal((await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'While paused'})).status,409);
+  await until(()=>!f.worker.current,'Previous job still active');f.worker.setPaused(false);await until(async()=>!(await f.request('/api/mobile/state')).data.devices[0].locked,'PC did not resume');
+  // A cloud edit invalidates the pending task even when the phone approves the old action.
+  await f.request('/api/mobile/task',{id:'fixture-task',done:false});f.resetModel();
+  const changed=await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'Check this task',taskId:'fixture-task'});
+  const changedApproval=await until(async()=> (await f.request('/api/mobile/run/'+changed.data.run.id)).data.approval,'Changed task approval missing',25000);
+  await f.request('/api/mobile/task',{id:'fixture-task',title:'A different task now'});
+  await f.request('/api/mobile/approval/'+changedApproval.id,{allow:true});
+  await until(async()=> (await f.request('/api/mobile/run/'+changed.data.run.id)).data.run.status==='blocked','Edited task did not stop'); assert.equal(f.executed.length,1);
+  await until(()=>!f.worker.current,'Changed job still active');f.resetModel();
+  const expired=await f.request('/api/mobile/run',{requestId:randomUUID(),deviceId:f.deviceId,instruction:'Test expired lease'});
+  const expiredApproval=await until(async()=> (await f.request('/api/mobile/run/'+expired.data.run.id)).data.approval,'Lease approval missing',25000);
+  clearInterval(f.worker.timer);await f.pool.query("UPDATE dooo_runs SET lease_until=now()-interval '1 minute' WHERE id=$1",[expired.data.run.id]);
+  assert.equal((await f.request('/api/mobile/approval/'+expiredApproval.id,{allow:true})).status,409);
+  await f.request('/api/mobile/state');assert.equal((await f.request('/api/mobile/run/'+expired.data.run.id)).data.run.status,'blocked');assert.equal(f.executed.length,1);
+  await f.request('/api/worker/revoke-phones',{}, {workerAuth:true});assert.equal((await f.request('/api/mobile/state')).status,401);
+});

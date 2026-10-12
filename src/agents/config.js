@@ -33,4 +33,4 @@ function saveConfig(config) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 });
   return file;
 }
-module.exports = { readConfig, saveConfig, configPath };
+module.exports = { readConfig, saveConfig, configPath, protect };

@@ -30,7 +30,7 @@ async function until(fn, message) { const end = Date.now() + 22000; while (Date.
     assert.equal((await fetch(url + '/api/state', { headers: { Authorization: 'Bearer ' + agentToken } })).status, 401, 'Agent key cannot access raw workspace writes');
     assert.equal((await fetch(url + '/api/agent', { method: 'POST', headers: { Authorization: 'Bearer ' + token } })).status, 401, 'Sync and agent credentials are separate');
     const codex = await connect('Codex'), claude = await connect('Claude Code');
-    assert.equal((await codex.listTools()).tools.length, 8);
+    assert.equal((await codex.listTools()).tools.length, 12);
     assert((await codex.listPrompts()).prompts.some(p => p.name === 'work_on_task'));
     assert.equal(data(await invoke(codex, 'list_projects')).projects[0].name, project.name);
     assert.equal(data(await invoke(claude, 'get_project', { projectId: 'personal' })).project.contextText, project.contextText);

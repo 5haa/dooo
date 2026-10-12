@@ -19,13 +19,16 @@ function createMcp(config, options = {}) {
   const server = new McpServer({ name: 'dooo', version: '1.1.0' }, { instructions: INSTRUCTIONS });
   function tool(name, description, inputSchema, readOnly) {
     server.registerTool(name, { description, inputSchema: z.object(inputSchema),
-      annotations: { readOnlyHint: readOnly, destructiveHint: false, idempotentHint: readOnly || name === 'complete_task', openWorldHint: false }
+      annotations: { readOnlyHint: readOnly, destructiveHint: name === 'run_computer', idempotentHint: readOnly || name === 'complete_task', openWorldHint: name === 'run_computer' }
     }, async args => {
       try {
         const data = await request(name, args);
         if (name === 'start_task') active.set(data.runId, args.taskId);
+        if (name === 'run_computer' && data.run?.task_run_id) active.set(data.run.task_run_id, args.taskId);
         if (name === 'release_task' || name === 'complete_task') active.delete(args.runId);
-        return { content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data };
+        const image = name === 'get_computer_run' && data.screen?.data ? { type: 'image', data: data.screen.data, mimeType: data.screen.mimeType } : null;
+        if (image) { const { data: _pixels, ...metadata } = data.screen; data.screen = metadata; }
+        return { content: [{ type: 'text', text: JSON.stringify(data) }, ...(image ? [image] : [])], structuredContent: data };
       } catch (error) {
         return { isError: true, content: [{ type: 'text', text: error.name === 'TimeoutError' || error.name === 'TypeError' ? 'Dooo is unavailable. Keep the task unfinished and retry when connected.' : error.message }] };
       }
@@ -47,6 +50,12 @@ function createMcp(config, options = {}) {
   }, false);
   tool('complete_task', 'Mark the owned task done after completing the user-requested work and recording passing verification. Refuses missing, failed, stale verification or changed task details. Completion syncs to Dooo.', { taskId: id, runId: id, summary }, false);
   tool('release_task', 'Stop work without marking the task done. Release as open for handoff, or blocked with the reason and what remains.', { taskId: id, runId: id, status: z.enum(['open', 'blocked']), summary }, false);
+  tool('computer_status', 'List the user\'s paired PCs and whether each is online, paused or locked. UI-TARS is the optional GUI operator; you remain responsible for planning and verification.', {}, true);
+  tool('run_computer', 'Only when the user asks you to control their PC: send a short, specific GUI instruction to UI-TARS on OpenRouter. Requires an online PC. Clicks, typing and shortcuts pause for phone approval; this tool cannot approve its own actions. Returns immediately with a run ID. Poll get_computer_run for progress; verify the result yourself before marking any todo done.', {
+    deviceId: z.string().uuid(), requestId: z.string().uuid().describe('Fresh UUID; reuse it only when retrying this exact request'), instruction: summary, taskId: id.optional()
+  }, false);
+  tool('get_computer_run', 'Read the GUI run status, action history and pending approval; includeScreen adds the latest PC screenshot for visual inspection. Review means UI-TARS reported finishing; it is not independent verification. Do not claim it worked without checking the result.', { runId: z.string().uuid(), includeScreen: z.boolean().default(false) }, true);
+  tool('stop_computer', 'Stop a requested PC run and invalidate its pending approval. No further actions may be started after the worker receives Stop.', { runId: z.string().uuid() }, false);
   server.registerPrompt('work_on_task', { description: 'Work on a Dooo task the user has selected, verify the result and report completion.', argsSchema: z.object({ taskId: z.string() }) }, ({ taskId }) => ({
     messages: [{ role: 'user', content: { type: 'text', text: `Work on Dooo task ${JSON.stringify(taskId)}. Read its full details and project context, claim it, implement the requested work within my permissions, run the relevant verification, record actual results and mark it complete only when finished. If blocked, leave it unfinished and explain why.` } }]
   }));
