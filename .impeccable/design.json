@@ -256,7 +256,7 @@
       {
         "name": "strike",
         "value": "220ms cubic-bezier(.16,1,.3,1)",
-        "purpose": "Grow the task title strike while the completed row remains in place."
+        "purpose": "Grow the task title strike while the completed row moves beneath unfinished tasks."
       },
       {
         "name": "minimize",
@@ -281,7 +281,7 @@
       {
         "name": "task-settle",
         "value": "220ms cubic-bezier(.16,1,.3,1)",
-        "purpose": "Animate new rows and shifted positions without moving completed rows on completion."
+        "purpose": "Animate new rows and shifted positions, including completion moving to the bottom."
       }
     ]
   },
@@ -297,7 +297,7 @@
     {
       "name": "Completed task row",
       "kind": "custom",
-      "description": "Plain row within the expanded card; completing it leaves the row in place.",
+      "description": "Plain row within the expanded card; completing it moves the row to the bottom.",
       "html": "<div class=\"ds-row\" role=\"listitem\" tabindex=\"0\"><span class=\"ds-title\">Completed task</span><button class=\"ds-check\" aria-label=\"Restore task\" aria-pressed=\"true\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.3\" aria-hidden=\"true\"><path d=\"m5 12 4 4L19 6\"/></svg></button></div>",
       "css": ".ds-row{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;display:grid;grid-template-columns:minmax(0,1fr) 22px 24px;align-items:center;gap:6px;min-height:52px;padding:10px 0;border-bottom:1px solid #ededed}.ds-row:focus-visible{outline:none;background:var(--focus-surface,#dedede);border-radius:6px}.ds-title{font-size:12px;line-height:20px;font-weight:500;overflow-wrap:anywhere;color:#767676;background-image:linear-gradient(#808080,#808080);background-repeat:no-repeat;background-position:0 55%;background-size:100% 1px;box-decoration-break:clone}.ds-check{grid-column:3;display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid var(--complete,#1e1e1e);border-radius:50%;color:#fff;background:var(--complete,#1e1e1e);cursor:pointer}.ds-check:hover{border-color:var(--accent,#505050)}.ds-check:focus-visible{outline:none;background:var(--focus-surface,#dedede);}"
     },
@@ -363,7 +363,7 @@
     ],
     "dos": [
       "Do preserve independent floating cards, the white outline-and-shadow silhouette and right-side rings.",
-      "Do keep completed tasks in place with clear check and strike feedback.",
+      "Do keep completed tasks visible at the bottom with clear check and strike feedback.",
       "Do use real data, readable wrapped titles, visible focus and display-constrained sizing.",
       "Use icon controls with accessible names and hover labels; reveal creation and settings only on request.",
       "Keep the plus anchored while opening the tray; persist its dragged position."

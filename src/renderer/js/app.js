@@ -1,4 +1,4 @@
-/* One project, one floating desktop window. Completion keeps the same keyed row in place. */
+/* One project per window. Completed rows settle beneath unfinished tasks. */
 (function () {
   'use strict';
   var D = window.Dooo, S = D.store, U = D.util, api = window.dooo;
@@ -18,6 +18,7 @@
     $('due-date').value = value.date || ''; $('due-time').value = value.time || '';
     details(!!value.details);
     $('edit-cancel').hidden = !editing;
+    $('ai-toggle').hidden = !state.aiAvailable || !!editing;
     $('task-submit').replaceChildren(D.icon(editing ? 'check' : 'arrow-up'));
     $('task-submit').setAttribute('aria-label', editing ? 'Save task' : 'Add task');
     $('task-submit').title = editing ? 'Save task' : 'Add task'; inputChanged();
@@ -29,8 +30,9 @@
   }
   function inputChanged() {
     $('composer-status').hidden = true;
-    var input = $('task-input'); input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 94) + 'px';
+    var input = $('task-input');
     $('task-submit').hidden = !input.value.trim(); $('task-submit').disabled = !input.value.trim();
+    input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 94) + 'px';
   }
   function edit(task) {
     if (pendingAi.has(task.id)) editedDuringAi.add(task.id);
@@ -92,7 +94,10 @@
     return row;
   }
   function render() {
-    var tasks = S.tasks.filter(function (t) { return t.projectId === S.activeProjectId; });
+    var tasks = S.tasks.filter(function (t) { return t.projectId === S.activeProjectId; }).sort(function (a, b) {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      return a.done ? (a.completedAt || 0) - (b.completedAt || 0) : 0;
+    });
     var done = tasks.filter(function (t) { return t.done; }).length, percent = tasks.length ? Math.round(done / tasks.length * 100) : 0;
     $('project-name').textContent = state.projects.find(function (p) { return p.id === state.projectId; }).name;
     $('project-subtitle').textContent = tasks.length ? done + ' of ' + tasks.length + ' completed' : 'No tasks yet';
@@ -104,7 +109,9 @@
     $('progress-value').style.strokeDashoffset = String(100 - percent);
     $('progress-value').style.opacity = percent ? '1' : '0';
     var existing = new Map(Array.from($('list').children).map(function (row) { return [row.dataset.id, row]; }));
-    var positions = new Map(Array.from($('list').children).map(function (row) { return [row.dataset.id, row.offsetTop]; }));
+    var focused = document.activeElement;
+    var positions = new Map(Array.from($('list').children).map(function (row) { return [row.dataset.id, row.getBoundingClientRect().top]; }));
+    existing.forEach(function (row) { if (row.moveAnimation) { row.moveAnimation.cancel(); row.moveAnimation = null; } });
     var added = [];
     tasks.forEach(function (task, i) {
       var isNew = !existing.has(task.id);
@@ -122,13 +129,18 @@
       var due = U.formatDue(task.due);
       if (due) meta.append(U.el('span', { class: due.overdue && !task.done ? 'overdue' : '' }, [due.label]));
       meta.hidden = !meta.childNodes.length;
-      if ($('list').children[i] !== row) $('list').insertBefore(row, $('list').children[i] || null);
+      if ($('list').children[i] !== row) {
+        var next = $('list').children[i] || null;
+        if (row.isConnected && $('list').moveBefore) $('list').moveBefore(row, next);
+        else $('list').insertBefore(row, next);
+      }
     });
     existing.forEach(function (row) { row.remove(); });
+    if (focused && focused.isConnected && focused !== document.activeElement) focused.focus({ preventScroll: true });
     if (document.documentElement.dataset.ready === 'true' && !U.reducedMotion()) {
       Array.from($('list').children).forEach(function (row) {
-        var top = positions.get(row.dataset.id), dy = top === undefined ? 0 : top - row.offsetTop;
-        if (dy) row.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.16,1,.3,1)' });
+        var top = positions.get(row.dataset.id), dy = top === undefined ? 0 : top - row.getBoundingClientRect().top;
+        if (Math.abs(dy) > .5) row.moveAnimation = row.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.16,1,.3,1)' });
       });
       added.forEach(function (row) { row.animate([{ opacity: 0, transform: 'translateY(5px)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.16,1,.3,1)' }); });
     }
@@ -137,7 +149,7 @@
     var wasExpanded = state && state.expanded;
     if (state && state.cloudVersion !== value.cloudVersion) S.tasks = value.tasks;
     state = value;
-    $('ai-toggle').hidden = !state.aiAvailable;
+    $('ai-toggle').hidden = !state.aiAvailable || !!editing;
     $('ai-toggle').setAttribute('aria-pressed', String(state.settings.aiRewriteEnabled !== false));
     $('ai-toggle').title = state.settings.aiRewriteEnabled !== false ? 'AI wording on · click to keep your exact words' : 'AI wording off · click to simplify new tasks';
     var folder = (state.settings.projectFolders || {})[state.projectId];

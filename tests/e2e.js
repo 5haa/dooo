@@ -101,12 +101,12 @@ async function main(){
     assert(input.y>=list.y+list.height);
     assert.equal(await first.locator('.task-row').count(),3);
   });
-  await step('completion preserves keyed rows, order and focus; updates live progress',async()=>{
+  await step('completion moves to the bottom, preserves focus and restores the original position on undo',async()=>{
     const before=await first.locator('.task-row').evaluateAll(rows=>rows.map(r=>r.dataset.id));
     await row(first,'Review the first build').locator('.task-check').focus();
     await first.keyboard.press('Space');
     assert.equal(await first.locator('.task-row').count(),3);
-    assert.deepEqual(await first.locator('.task-row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),before);
+    assert.deepEqual(await first.locator('.task-row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),[before[0],before[2],before[1]]);
     assert.equal(await row(first,'Review the first build').locator('.task-check').getAttribute('aria-pressed'),'true');
     assert.equal(await row(first,'Review the first build').locator('.task-check').evaluate(el=>el===document.activeElement),true);
     assert.equal(await first.locator('#progress-number').textContent(),'33%');
@@ -117,7 +117,11 @@ async function main(){
     await shot(first,'floating-expanded.png');
     await first.locator('#toast-undo').click();
     assert.equal(await first.locator('#progress-number').textContent(),'0%');
+    assert.deepEqual(await first.locator('.task-row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),before);
     await row(first,'Review the first build').locator('.task-check').click();
+    await row(first,'Send the final files').locator('.task-check').click();
+    assert.equal(await first.locator('.task-title').last().textContent(),'Send the final files','Newest completion belongs beneath earlier completed tasks');
+    await row(first,'Send the final files').locator('.task-check').click();
     await row(first,'Review the first build').locator('.task-check').click();
     assert.deepEqual(await first.locator('.task-row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),before);
     await row(first,'Review the first build').locator('.task-check').click();

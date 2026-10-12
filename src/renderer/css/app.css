@@ -31,7 +31,7 @@ body.leaving .floating-card { opacity: 0; transform: translateY(-5px) scale(.98)
 .expanded .task-dropdown { opacity: 1; transform: translateY(0); }
 .task-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 12px 0; flex: none; height: 32px; }
 .text-btn { min-height: 26px; padding: 3px 6px; border-radius: 6px; color: var(--muted); font-size: 11px; }
-.task-list { flex: 1; min-height: 0; overflow-y: auto; padding: 0 14px 6px; cursor: text; }
+.task-list { flex: 1; min-height: 0; overflow-y: auto; overflow-anchor: none; padding: 0 14px 6px; cursor: text; }
 .task-row { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 22px 24px; align-items: center; gap: 6px; min-height: 52px; padding: 10px 0; border-bottom: 1px solid #ededed; cursor: default; transition: background 180ms ease-out; }
 .task-row:last-child { border-bottom: 0; }
 .task-row:focus-visible { background: var(--focus-surface); border-radius: 6px; }
@@ -70,8 +70,13 @@ body.leaving .floating-card { opacity: 0; transform: translateY(-5px) scale(.98)
 .submit-btn:focus-visible { background: var(--accent); color: #fff; }
 .submit-btn:active { transform: scale(.92); }
 .submit-btn:disabled { opacity: .45; }
-.composer-tools { display: flex; gap: 6px; }
+.composer-tools { display: flex; align-items: center; flex: none; gap: 2px; margin-top: 2px; }
 .icon-btn[aria-pressed="true"] { color: var(--ink); background: var(--focus-surface); }
+.composer-tools .icon-btn { width: 30px; height: 30px; border-radius: 9px; transition: background 180ms ease-out, color 180ms ease-out, transform 220ms cubic-bezier(.16,1,.3,1); }
+.composer-tools .icon-btn[aria-pressed="true"], .composer-tools .icon-btn[aria-expanded="true"] { background: var(--surface); color: var(--ink); }
+.composer-tools .icon-btn:hover { background: var(--surface); color: var(--ink); transform: translateY(-1px); }
+.composer-tools .icon-btn:active { transform: scale(.94); }
+.composer-tools .icon-btn:focus-visible { background: var(--focus-surface); color: var(--ink); }
 .composer-status { margin: 5px 4px 2px; font-size: 10px; line-height: 16px; color: var(--muted); }
 .ai-working { display: none; width: 12px; height: 12px; margin-left: 6px; vertical-align: -2px; color: var(--muted); }
 .ai-working.visible { display: inline-block; animation: ai-turn 1s linear infinite; }

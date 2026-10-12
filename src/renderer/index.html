@@ -42,12 +42,12 @@
         <form class="composer" id="sheet" aria-label="Add a task">
           <div class="composer-line">
             <textarea id="task-input" aria-label="Task" rows="1" maxlength="300" placeholder="Add a task…" disabled></textarea>
+            <div class="composer-tools">
+              <button class="icon-btn" id="details-toggle" type="button" aria-label="Task details" title="Task details" aria-expanded="false" aria-controls="task-details"><i data-icon="sliders"></i></button>
+              <button class="icon-btn" id="ai-toggle" type="button" aria-label="Simplify with AI" title="Simplify with AI" aria-pressed="true" hidden><i data-icon="sparkles"></i></button>
+              <button class="icon-btn" id="edit-cancel" type="button" aria-label="Cancel editing" title="Cancel editing" hidden><i data-icon="x"></i></button>
+            </div>
             <button class="submit-btn" id="task-submit" type="submit" aria-label="Add task" title="Add task" hidden><i data-icon="arrow-up"></i></button>
-          </div>
-          <div class="composer-tools">
-            <button class="icon-btn" id="details-toggle" type="button" aria-label="Task details" title="Task details" aria-expanded="false" aria-controls="task-details"><i data-icon="sliders"></i></button>
-            <button class="icon-btn" id="ai-toggle" type="button" aria-label="Simplify with AI" title="Simplify with AI" aria-pressed="true" hidden><i data-icon="sparkles"></i></button>
-            <button class="icon-btn" id="edit-cancel" type="button" aria-label="Cancel editing" title="Cancel editing" hidden><i data-icon="x"></i></button>
           </div>
           <p class="composer-status" id="composer-status" role="status" hidden></p>
           <div class="task-details" id="task-details" hidden>

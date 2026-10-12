@@ -117,7 +117,7 @@ Retain bundled Plus Jakarta Sans and the fallback stack above. Use the compact 1
 
 Each project owns one native transparent window with an 8px outer inset and no shared background. Default native width is 380px, with a 300–800px range constrained to the display. Collapsed height is 120px including the insets; the header is 102px. Expanded height defaults to 480px with a 280px minimum, also constrained to the display.
 
-The task dropdown grows downward within the existing card. Task rows scroll above the bottom composer; optional details begin collapsed and expand upward within its available space. Keep the resize control at the expanded card's bottom-right. Completed rows remain in place.
+The task dropdown grows downward within the existing card. Task rows scroll above the bottom composer; optional details begin collapsed and expand upward within its available space. Keep the resize control at the expanded card's bottom-right. Completed rows move to the bottom, ordered from earliest to latest completion. Restoring a task returns it to its original manual position.
 
 The plus can be dragged freely and snaps to either vertical screen edge within 24px. Its saved anchor belongs to the button, so opening or resizing the icon tray never shifts it. The 44px handle has 14px corners, peeks 8px at a screen edge, and can also be moved with arrow keys. The 180px-wide tray slides alongside it, chooses the available side, and stays inside the current display. Its default content is about 159px high; project entry and settings grow it only when requested. The native transparent window fits the handle and tray together.
 
@@ -136,16 +136,16 @@ The primary card uses the largest corner radius; the control palette and edge ta
 ## Components
 
 - **Project summary:** draggable and clickable, with copy on the left and a 56px ring on the right. The ring has a rounded 6px stroke, deeper project color and a stronger percentage. A small chevron conveys expansion; the minimize control appears on hover or keyboard focus.
-- **Task rows:** plain separated rows, 52px minimum height, wrapping task title, optional metadata, quiet delete control and right-aligned check. Completed rows stay visible with muted text and an animated strike.
-- **Composer:** borderless filled field at the bottom, with a subtle background change while typing. The arrow-up action appears when typing and becomes a check while editing; a sliders icon reveals optional fields. Fields and controls show keyboard focus through their fill, with no nested outlines. Keep text and placeholder contrast readable on both resting and focused backgrounds.
+- **Task rows:** plain separated rows, 52px minimum height, wrapping task title, optional metadata, quiet delete control and right-aligned check. Completed rows stay visible below unfinished tasks, with muted text and an animated strike.
+- **Composer:** borderless filled field at the bottom, with a subtle background change while typing. The arrow-up action appears when typing and becomes a check while editing; the sliders and AI toggle share the input row on the right, with soft neutral active fills; the sliders reveal optional fields. Fields and controls show keyboard focus through their fill, with no nested outlines. Keep text and placeholder contrast readable on both resting and focused backgrounds.
 - **AI wording:** a neutral sparkle toggle sits beside the sliders when the private AI service is configured. Tasks save immediately; a small inline spinner marks wording in progress without blocking the composer. A failed request keeps the original wording and reveals one quiet status line. Manual edits take precedence. Original wording is available through Undo and the title's hover label. Folder linking and context refresh remain icons inside the project menu.
 - **Icon tray:** six 40px-high action buttons in a three-column grid; a compact footer holds colored project folder icons and a gear. Project names and actions appear in hover labels. The folder-plus reveals the name field; the gear reveals pin/startup toggles. Keep fields hidden by default and preserve the handle’s screen position.
-- **Motion:** native expansion uses 240ms quartic ease-out. Dropdown opacity takes 180ms and its 6px movement takes 240ms; rings update in 360ms. Completion draws the check in 220ms, pops it over 300ms and strikes text in 220ms. Minimize fades in 150ms; the edge peek takes 260ms. The tray slides/scales over 280ms with 180ms opacity, and native contraction waits 200ms for the fade. Added and reordered tasks settle over 220ms. Undo sits in the task toolbar without changing list height. Respect reduced motion in both native resizing and CSS feedback.
+- **Motion:** native expansion uses 240ms quartic ease-out. Dropdown opacity takes 180ms and its 6px movement takes 240ms; rings update in 360ms. Completion draws the check in 220ms, pops it over 300ms and strikes text in 220ms. Minimize fades in 150ms; the edge peek takes 260ms. The tray slides/scales over 280ms with 180ms opacity, and native contraction waits 200ms for the fade. Added tasks settle over 220ms; reordered tasks settle over 280ms from their current visual position. Undo sits in the task toolbar without changing list height. Respect reduced motion in both native resizing and CSS feedback.
 
 ## Do's and Don'ts
 
 - **Do** preserve independent floating cards, the white outline-and-shadow silhouette and right-side rings.
-- **Do** keep completed tasks in place with clear check and strike feedback.
+- **Do** keep completed tasks visible at the bottom with clear check and strike feedback.
 - **Do** use real data, readable wrapped titles, visible focus and display-constrained sizing.
 - **Don't** restore the shared overview, back navigation, Personal sections, greetings or bottom navigation.
 - **Don't** expose optional task details by default or put task rows in nested cards.

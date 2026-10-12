@@ -1,8 +1,8 @@
 /* Dooo: state + persistence.
  * Task: { id, title, priority: 'none'|'high'|'medium'|'low', due: "YYYY-MM-DD" | "YYYY-MM-DDTHH:mm" | null,
  *         projectId, done, createdAt, completedAt }
- * The array order is the user's manual order of open tasks. Completing a task leaves it in place, so an undo puts
- * it back exactly where it was. Every change is followed by dooo.saveTasks(tasks), with no debounce.
+ * The array retains manual positions for restoration. The renderer groups completed tasks at the bottom.
+ * Every change is followed by dooo.saveTasks(tasks), with no debounce.
  */
 (function () {
   'use strict';
@@ -209,7 +209,7 @@
       return function () { self.revert(snap); };
     },
 
-    /* Restore in place so checked rows never jump around. */
+    /* Restore the saved manual position among unfinished tasks. */
     restore: function (id) {
       var i = this.indexOf(id);
       if (i < 0 || !this.tasks[i].done) return null;

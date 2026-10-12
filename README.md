@@ -10,11 +10,11 @@ Floating project cards for your Windows desktop.
 - **Move:** drag a card by its header. Each project is a separate native window and moves independently.
 - **Plus controls:** drag the plus anywhere on the desktop; near the left or right edge it snaps into a small tab. Click it for a compact icon tray. Hover an icon for its label. Use the folder-plus to create a project, the colored folder icons to restore one, and the eye, minus, chevrons, or grid to show, minimize, expand, collapse, or arrange cards. The gear reveals settings.
 - **Add:** type in the bottom input and press Enter. Click empty space in the task list or press Ctrl+N to focus task entry.
-- **Complete:** click a task's circle, or focus the row and press Space. The check, strike-through, and progress ring animate; the task stays in the same place. Click again to restore it.
+- **Complete:** click a task's circle, or focus the row and press Space. The check, strike-through, and progress ring animate; the task moves to the bottom, below earlier completions. Click again to restore its original position.
 - **Optional details:** click the sliders icon for priority, date, or time. Only assigned details appear on a task. The eraser icon removes all three.
 - **Edit:** click a task, edit it in the bottom input, and press Enter or the check icon. The cancel icon restores any unfinished new-task draft. Collapsing a card preserves its draft.
 - **Rename:** expand the card and click its pencil icon.
-- **Reorder:** drag an unfinished task onto another, or focus it and press Alt+Up / Alt+Down. Completed tasks stay in place.
+- **Reorder:** drag an unfinished task onto another, or focus it and press Alt+Up / Alt+Down. Completed tasks stay beneath unfinished tasks.
 - **Delete:** hover or focus a row to reveal its delete button, or press Delete on the row. An undo icon appears in the toolbar briefly after a change, without moving the task list.
 - **Clear completed:** use the project's ellipsis menu. This affects only that project and offers Undo.
 - **Drop text:** drop text into an expanded card to create one task per line, up to 20 lines.

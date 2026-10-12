@@ -69,6 +69,22 @@ function answer(index, title) { requests[index].res.end(JSON.stringify({ title, 
     await page.screenshot({ path: path.join(ROOT, 'test-results', 'ai-composer.png'), animations: 'disabled' });
     await page.locator('#task-menu-toggle').click();
     await page.screenshot({ path: path.join(ROOT, 'test-results', 'ai-project-menu.png'), animations: 'disabled' });
+    await page.locator('#task-menu-toggle').click();
+    const inlineTools = async () => {
+      const boxes = await page.evaluate(() => ['task-input', 'details-toggle', 'ai-toggle', 'sheet'].map(id => {
+        const r = document.getElementById(id).getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top };
+      }));
+      assert(boxes[1].left >= boxes[0].right, 'Details belongs to the right of task text');
+      assert(boxes[2].left >= boxes[1].right, 'AI belongs beside details');
+      assert(Math.abs(boxes[1].top - boxes[0].top) <= 3 && Math.abs(boxes[2].top - boxes[1].top) <= 1, 'Tools must stay on the input row');
+      assert(boxes[2].right < boxes[3].right, 'Tools must fit inside the composer');
+    };
+    await inlineTools();
+    await page.evaluate(() => window.dooo.window.setSize(300, 480));
+    await page.waitForFunction(() => window.innerWidth === 300);
+    await page.locator('#task-input').fill('A longer task that wraps neatly while the controls remain on its right');
+    await inlineTools();
+    await page.screenshot({ path: path.join(ROOT, 'test-results', 'ai-composer-compact.png'), animations: 'disabled' });
     await app.close(); app = null; page = await launch();
     assert.equal(read('tasks.json').length, 4); assert.equal(read('tasks.json').find(t => t.title === 'fix seednace uplaod').originalText, 'fix seednace uplaod');
     assert.match(read('settings.json').projects[0].contextText, /BytePlus/);
